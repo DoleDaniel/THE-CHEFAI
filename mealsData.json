@@ -1,0 +1,20 @@
+[
+  {
+    "id": "secret-1784553103266",
+    "name": "STREET SPAGHETTI",
+    "ingredients": [
+      "onions",
+      "spaghetti",
+      "oil",
+      "egg"
+    ],
+    "procedure": [
+      "diced onions,add water,",
+      "parboil spaghetti, fry egg,"
+    ],
+    "nutrition": "calcium,protein, carbonhydrate,water",
+    "imgUrl": "",
+    "videoUrl": "/uploads/meal-1784553096952-7822.mp4",
+    "createdAt": "2026-07-20T13:11:43.269Z"
+  }
+]

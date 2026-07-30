@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    // Silence noisy browser extension warnings (e.g. MetaMask's ObjectMultiplex/MaxListenersExceededWarning)
+    (function() {
+      const filterWarning = (msg) => {
+        if (!msg) return false;
+        const str = String(msg.message || msg.reason || msg.stack || msg || "");
+        const s = str.toLowerCase();
+        const keywords = [
+          "maxlistenersexceededwarning",
+          "objectmultiplex",
+          "orphaned data",
+          "malformed chunk",
+          "liveness",
+          "postmessage",
+          "domwindow",
+          "target origin",
+          "recipient window"
+        ];
+        return keywords.some(key => s.includes(key));
+      };
+
+      const originalWarn = console.warn;
+      console.warn = function(...args) {
+        if (args.some(filterWarning)) return;
+        originalWarn.apply(console, args);
+      };
+
+      const originalError = console.error;
+      console.error = function(...args) {
+        if (args.some(filterWarning)) return;
+        originalError.apply(console, args);
+      };
+
+      window.addEventListener('error', function(e) {
+        const msg = String(e.message || e.error || "");
+        if (msg.includes("postMessage") || msg.includes("DOMWindow") || msg.includes("target origin")) {
+          e.preventDefault();
+          return true;
+        }
+      }, true);
+
+      window.addEventListener('unhandledrejection', function(e) {
+        const reason = String(e.reason || "");
+        if (reason.includes("postMessage") || reason.includes("DOMWindow") || reason.includes("target origin")) {
+          e.preventDefault();
+          return true;
+        }
+      });
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>THE CHEF - Ultimate AI Culinary Guide</title>
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Discover global delicacies, plan meals based on your kitchen ingredients, and log secret recipes. Experience Nigerian, Mexican, and Brazilian cooking at ease with THE CHEF AI.">
+  <meta name="keywords" content="AI Chef, meal planner, recipes, Nigerian food, Mexican food, Brazilian food, kitchen inventory">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍳</text></svg>">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Local Tailwind CSS (compiled from tailwind-input.css with preflight disabled) -->
+  <link rel="stylesheet" href="tailwind-dist.css">
+</head>
+<body>
+
+  <!-- Global App Layout -->
+  <div class="app-container">
+    
+    <!-- Top Navigation Bar -->
+    <header class="app-header">
+      <div class="logo-container" id="logo-home">
+        <div class="logo-icon-wrapper" style="overflow: hidden; border-radius: 50%; border: 1.5px solid var(--accent-color); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+          <img src="chef_agent.jpg" alt="THE CHEF AI Logo" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+        <span class="logo-text">THE CHEF<span class="logo-accent">AI</span></span>
+      </div>
+      
+      <nav class="main-nav">
+        <button class="nav-link active" data-target="feed-view" id="nav-feed">
+          <i class="fa-solid fa-utensils"></i> <span>Feed</span>
+        </button>
+        <button class="nav-link" data-target="kitchen-view" id="nav-kitchen">
+          <i class="fa-solid fa-kitchen-set"></i> <span>My Kitchen</span>
+        </button>
+        <button class="nav-link" data-target="meal-view" id="nav-meal">
+          <i class="fa-solid fa-book-bookmark"></i> <span>My Meal</span>
+        </button>
+        <button class="nav-link" data-target="chef-view" id="nav-chef">
+          <i class="fa-solid fa-hat-cowboy-side"></i> <span>The Chef</span>
+        </button>
+        <button class="nav-link" data-target="profile-view" id="nav-profile">
+          <i class="fa-solid fa-user-ninja"></i> <span>Profile</span>
+        </button>
+      </nav>
+
+      <!-- Time Status Widget -->
+      <div class="time-widget" id="time-display-widget">
+        <i class="fa-solid fa-clock"></i>
+        <span id="widget-time-text">18:00</span>
+        <span class="badge badge-accent" id="widget-meal-type">Dinner</span>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="app-main">
+      
+      <!-- VIEW: FEED -->
+      <section class="app-view active" id="feed-view">
+        <div class="view-header">
+          <h1 class="view-title">Stimulate Your Appetite</h1>
+          <p class="view-subtitle">Browse mouth-watering, human-prepared delicacies from around the globe. Tap any dish for exact procedures, ingredients, and video guides.</p>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-bar-container" style="margin-bottom: 30px; display: flex; gap: 12px; max-width: 600px;">
+          <div style="position: relative; flex: 1;">
+            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.95rem;"></i>
+            <input type="text" id="feed-search-input" placeholder="Search cuisines, ingredients, or cultures (e.g., Jollof, Tacos, Brazilian, beans)..." style="width: 100%; padding: 12px 14px 12px 42px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-main); font-family: var(--font-body); font-size: 0.95rem; transition: var(--transition-smooth);" autocomplete="off">
+          </div>
+        </div>
+
+        <!-- Feed Grid -->
+        <div class="feed-grid" id="recipes-feed-grid">
+          <!-- Populated by JavaScript -->
+        </div>
+      </section>
+
+      <!-- VIEW: MY KITCHEN -->
+      <section class="app-view" id="kitchen-view">
+        <div class="view-header">
+          <h1 class="view-title">My Kitchen</h1>
+          <p class="view-subtitle">Stock your digital pantry and shelves. The Chef uses this inventory to suggest recipes you can cook right now.</p>
+        </div>
+
+        <div class="kitchen-layout">
+          <!-- Left: Add Ingredient Form -->
+          <!-- Left: Add Ingredient Form Card (Tailwind Styling Combo) -->
+          <div class="bg-[#121212] p-6 rounded-2xl max-w-sm text-white font-sans border border-neutral-800 kitchen-form-panel">
+            
+            <form id="add-ingredient-form">
+              <!-- Header -->
+              <div class="flex items-center gap-2 mb-4">
+                <span class="text-orange-500 text-xl">➕</span>
+                <h2 class="text-lg font-bold tracking-wide">Add Foodstuff</h2>
+              </div>
+
+              <!-- Ingredient Name Input -->
+              <div class="mb-4">
+                <label class="block text-xs text-neutral-400 font-medium mb-1.5">Ingredient Name</label>
+                <input type="text" id="ingredient-name" placeholder="e.g., Roma Tomatoes, Beef, Rice" required autocomplete="off"
+                       class="w-full bg-[#1c1c1e] text-sm text-neutral-200 placeholder-neutral-500 px-3 py-3 rounded-xl border border-neutral-800 focus:outline-none focus:border-orange-500 transition-colors" />
+                <!-- Fuzzy spellchecker suggestion wrapper -->
+                <div id="fuzzy-suggestion-wrapper"></div>
+              </div>
+
+              <!-- Row 2: Qty, Unit, Category (Perfect Alignment Combo) -->
+              <div class="grid grid-cols-10 gap-2 mb-5">
+                <!-- Qty (20% width) -->
+                <div class="col-span-2">
+                  <label class="block text-xs text-neutral-400 font-medium mb-1.5 truncate">Qty (opt)</label>
+                  <input type="number" id="ingredient-qty" placeholder="--" step="any" autocomplete="off"
+                         class="w-full h-11 bg-[#1c1c1e] text-sm text-center text-white placeholder-neutral-500 rounded-xl border border-neutral-800 focus:outline-none focus:border-orange-500" />
+                </div>
+
+                <!-- Unit (30% width) -->
+                <div class="col-span-3">
+                  <label class="block text-xs text-neutral-400 font-medium mb-1.5">Unit</label>
+                  <select id="ingredient-unit" class="w-full h-11 bg-[#1c1c1e] text-neutral-200 text-sm px-2 rounded-xl border border-neutral-800 focus:outline-none focus:border-orange-500 appearance-none cursor-pointer">
+                    <option value="pcs">pcs</option>
+                    <option value="kg">kg</option>
+                    <option value="g">g</option>
+                    <option value="ml">ml</option>
+                    <option value="l">l</option>
+                    <option value="cups">cups</option>
+                    <option value="tbsp">tbsp</option>
+                    <option value="tsp">tsp</option>
+                  </select>
+                </div>
+
+                <!-- Category (50% width) -->
+                <div class="col-span-5">
+                  <label class="block text-xs text-neutral-400 font-medium mb-1.5">Category</label>
+                  <select id="ingredient-category" required class="w-full h-11 bg-[#1c1c1e] text-neutral-200 text-sm px-3 rounded-xl border border-neutral-800 focus:outline-none focus:border-orange-500 appearance-none cursor-pointer">
+                    <option value="Vegetables & Fruits">Produce (Veg)</option>
+                    <option value="Proteins">Proteins (Meat)</option>
+                    <option value="Grains & Carbs">Grains & Tuber</option>
+                    <option value="Spices & Pantry">Spices & Oils</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Action Button -->
+              <button type="submit" class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-black font-semibold py-3 rounded-xl shadow-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2 text-sm mb-6">
+                <span>📋</span> Place on Shelf
+              </button>
+            </form>
+
+            <hr class="border-neutral-800 mb-5" />
+
+            <!-- Pantry Overview Footer Area -->
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs text-neutral-400 font-medium tracking-wide">PANTRY OVERVIEW</p>
+                <div class="flex items-baseline gap-1 mt-1">
+                  <span class="text-3xl font-black text-amber-500" id="total-ingredients-count">0</span>
+                  <span class="text-xs text-neutral-400">Items Stocked</span>
+                </div>
+              </div>
+              
+              <button id="kitchen-suggest-btn" class="border border-amber-500/40 text-amber-500 bg-amber-500/5 px-4 py-2 rounded-xl text-xs font-semibold hover:bg-amber-500/10 transition-colors">
+                Cook with what I have
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Right: Interactive Shelves -->
+          <div class="shelves-container">
+            <!-- Shelf 1: Proteins -->
+            <div class="kitchen-shelf" data-category="Proteins">
+              <div class="shelf-header">
+                <span class="shelf-title"><i class="fa-solid fa-drumstick-bite text-accent"></i> Proteins & Meats</span>
+                <span class="shelf-count" id="count-proteins">0 items</span>
+              </div>
+              <div class="shelf-surface" id="shelf-proteins">
+                <div class="empty-shelf-msg">Empty shelf</div>
+              </div>
+            </div>
+
+            <!-- Shelf 2: Grains & Carbs -->
+            <div class="kitchen-shelf" data-category="Grains & Carbs">
+              <div class="shelf-header">
+                <span class="shelf-title"><i class="fa-solid fa-wheat-awn text-accent"></i> Grains, Starches & Carbs</span>
+                <span class="shelf-count" id="count-carbs">0 items</span>
+              </div>
+              <div class="shelf-surface" id="shelf-carbs">
+                <div class="empty-shelf-msg">Empty shelf</div>
+              </div>
+            </div>
+
+            <!-- Shelf 3: Vegetables & Fruits -->
+            <div class="kitchen-shelf" data-category="Vegetables & Fruits">
+              <div class="shelf-header">
+                <span class="shelf-title"><i class="fa-solid fa-carrot text-accent"></i> Fresh Produce</span>
+                <span class="shelf-count" id="count-produce">0 items</span>
+              </div>
+              <div class="shelf-surface" id="shelf-produce">
+                <div class="empty-shelf-msg">Empty shelf</div>
+              </div>
+            </div>
+
+            <!-- Shelf 4: Spices & Pantry -->
+            <div class="kitchen-shelf" data-category="Spices & Pantry">
+              <div class="shelf-header">
+                <span class="shelf-title"><i class="fa-solid fa-pepper-hot text-accent"></i> Spices, Oils & Pantry</span>
+                <span class="shelf-count" id="count-spices">0 items</span>
+              </div>
+              <div class="shelf-surface" id="shelf-spices">
+                <div class="empty-shelf-msg">Empty shelf</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW: MY MEAL -->
+      <section class="app-view" id="meal-view">
+        <div class="view-header">
+          <h1 class="view-title">My Secret Recipe Book</h1>
+          <p class="view-subtitle">Log your culinary experiments and family secrets. Save them locally, then generate quick links to share your cooking directly with friends!</p>
+        </div>
+
+        <div class="meal-layout">
+          <!-- Left: Log Recipe Form -->
+          <div class="glass-panel meal-form-panel">
+            <h3 class="panel-title"><i class="fa-solid fa-feather text-accent"></i> Log Experimental Meal</h3>
+            <form id="save-meal-form" class="app-form">
+              <div class="form-group">
+                <label for="meal-name">Name of Dish</label>
+                <input type="text" id="meal-name" placeholder="e.g., Danny's Spicy Fusion Jollof Tacos" required autocomplete="off">
+              </div>
+              <div class="form-group">
+                <label for="meal-ingredients">Recipe & Ingredients</label>
+                <textarea id="meal-ingredients" rows="3" placeholder="Enter ingredients, one per line..." required></textarea>
+              </div>
+              <div class="form-group">
+                <label for="meal-procedure">Procedure & Techniques</label>
+                <textarea id="meal-procedure" rows="4" placeholder="Detail the cooking steps..." required></textarea>
+              </div>
+              <div class="form-group">
+                <label for="meal-nutrition">Nutritional Impact</label>
+                <input type="text" id="meal-nutrition" placeholder="e.g., High protein, rich in fiber, low sodium" required>
+              </div>
+              <div class="form-group" style="position: relative;">
+                <label style="font-weight: 600;"><i class="fa-solid fa-photo-film text-accent"></i> Upload Media (Pictures or Video) <span style="color: var(--danger); font-size: 0.75rem;">*required</span></label>
+                
+                <div style="margin-top: 8px; display: flex; gap: 12px;">
+                  <button type="button" class="btn btn-accent btn-block" id="upload-select-file-btn" style="padding: 10px;"><i class="fa-solid fa-folder-open"></i> From Files</button>
+                  <button type="button" class="btn btn-primary btn-block" id="upload-select-camera-btn" style="padding: 10px;"><i class="fa-solid fa-camera"></i> Use Camera</button>
+                </div>
+                
+                <input type="file" id="meal-file-upload" accept="image/*,video/*" multiple style="display: none;">
+                
+                <!-- Hidden inputs to store S3/CDN URLs after upload -->
+                <input type="hidden" id="meal-img-url">
+                <input type="hidden" id="meal-video-url">
+
+                <!-- Upload Limits Warning Info -->
+                <div style="margin-top: 10px; font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; background: rgba(0,0,0,0.20); padding: 10px; border-radius: 8px; border: 1px dashed var(--border-color);">
+                  <i class="fa-solid fa-circle-info text-accent"></i> <strong>Upload limits:</strong><br>
+                  &bull; <strong>Pictures:</strong> Must select exactly 3 or 4 pictures (Max 5MB each)<br>
+                  &bull; <strong>Videos:</strong> Max 30 seconds, Max 20MB (Single video)
+                </div>
+
+                <!-- Upload Status Indicator (shows files details after upload) -->
+                <div id="media-status-indicator" style="margin-top: 10px; display: none; background: rgba(46, 204, 113, 0.15); border: 1px solid rgba(46, 204, 113, 0.3); padding: 10px; border-radius: 8px; font-size: 0.8rem; color: var(--success); align-items: center; gap: 8px;">
+                  <i class="fa-solid fa-circle-check"></i>
+                  <span id="media-status-text">No files uploaded.</span>
+                </div>
+
+                <!-- Simulated upload progress -->
+                <div class="upload-progress-container" id="cdn-upload-progress">
+                  <div class="upload-progress-header">
+                    <span>Uploading to secure CDN...</span>
+                    <span id="cdn-upload-percent">0%</span>
+                  </div>
+                  <div class="upload-progress-bar-wrapper">
+                    <div class="upload-progress-bar-fill" id="cdn-upload-fill"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="meal-form-actions" style="display: flex; gap: 12px; margin-top: 15px; width: 100%;">
+                <button type="submit" class="btn btn-primary" style="flex: 1; padding: 12px 20px;">
+                  <i class="fa-solid fa-floppy-disk"></i> Save Secret Meal
+                </button>
+                <button type="button" class="btn btn-accent d-none" id="btn-share-last-saved" style="padding: 12px 20px; font-weight: 700; white-space: nowrap; flex-shrink: 0; min-width: 100px;" title="Share this Recipe">
+                  <i class="fa-solid fa-share-nodes"></i> Share
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Right: Secret Meals list -->
+          <div class="secret-meals-column">
+            <h3 class="column-title"><i class="fa-solid fa-vault text-accent"></i> Saved Creations</h3>
+            <div class="secret-meals-list" id="saved-meals-list">
+              <!-- Dynamically populated -->
+              <div class="empty-list-placeholder">
+                <i class="fa-solid fa-book-open"></i>
+                <p>No secret recipes logged yet. Formulate your first experiment on the left!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW: THE CHEF -->
+      <section class="app-view" id="chef-view">
+        <!-- Interactive Alert for Meal Times -->
+        <div class="chef-time-alert glass-panel d-none" id="meal-time-alert">
+          <div class="alert-content">
+            <div class="alert-icon-wrapper animate-bounce">
+              <i class="fa-solid fa-clock"></i>
+            </div>
+            <div>
+              <h4 id="alert-title">Time for Dinner!</h4>
+              <p id="alert-text">It is currently 18:30. Let Chef suggest a hearty dinner based on your stock.</p>
+            </div>
+          </div>
+          <button class="btn btn-accent btn-sm" id="alert-suggest-btn">Suggest Now</button>
+        </div>
+
+        <div class="chef-workspace">
+          <div class="chef-profile-sidebar glass-panel">
+            <div class="chef-avatar-wrapper">
+              <div class="chef-avatar">
+                <img src="chef_agent.jpg" alt="Chef AI" style="border: 2px solid var(--accent-color);">
+                <div class="avatar-glow"></div>
+              </div>
+              <h3 class="chef-name">THE CHEF <span class="badge badge-accent">AI AGENT</span></h3>
+              <p class="chef-status"><span class="status-dot animate-pulse"></span> Online & Analyzing Kitchen</p>
+            </div>
+          </div>
+
+          <!-- Right: Interactive Suggestion Console -->
+          <div class="chef-console-panel">
+             <div class="console-header glass-panel" style="position: relative; z-index: 20;">
+              <div class="console-header-details">
+                <h3 class="console-title">Intelligent Suggestion Engine</h3>
+                <p class="console-subtitle" id="console-explanation">Matching recipes to your available ingredients...</p>
+              </div>
+              <!-- Culture Search Bar in Chef tab (Searchable Dropdown) -->
+              <div class="chef-tab-filters" style="position: relative; display: flex; align-items: center; gap: 8px; z-index: 10;">
+                <i class="fa-solid fa-earth-americas" style="color: var(--text-muted); font-size: 0.95rem;"></i>
+                <div class="custom-dropdown" id="chef-cuisine-dropdown" style="width: 200px; position: relative;">
+                  <div class="custom-dropdown-trigger" id="chef-cuisine-trigger" style="padding: 8px 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 0.85rem; transition: var(--transition-smooth);">
+                    <span id="chef-cuisine-selected-label">Select Cuisine</span>
+                    <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem; color: var(--text-muted);"></i>
+                  </div>
+                  <div class="custom-dropdown-menu" id="chef-cuisine-menu" style="display: none; position: absolute; top: 100%; right: 0; width: 100%; background: #121214; border: 1px solid var(--border-color); border-radius: 12px; z-index: 999; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7); overflow: hidden;">
+                    <div class="custom-dropdown-search" style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                      <input type="text" id="chef-cuisine-search-input" placeholder="Search cuisines..." style="width: 100%; padding: 6px 10px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 8px; color: #fff; font-size: 0.8rem; outline: none;" autocomplete="off">
+                    </div>
+                    <div class="custom-dropdown-list" id="chef-cuisine-list" style="max-height: 180px; overflow-y: auto; padding: 4px 0;">
+                      <!-- Dynamic list -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Entry Box -->
+            <div class="glass-panel quick-ingredients-panel" style="padding: 28px; display: flex; flex-direction: column; gap: 15px; margin-top: 24px; margin-bottom: 20px; border-radius: 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h4 style="font-family: var(--font-display); font-size: 1.1rem; margin: 0; color: #fff; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-wand-magic-sparkles text-accent"></i> Quick Ingredients Entry</h4>
+                <div id="chef-input-source-badge" class="badge badge-primary" style="font-size: 0.72rem; padding: 5px 10px; border-radius: 20px;">Using My Kitchen Shelf</div>
+              </div>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0; line-height: 1.5;">Type what you currently have in your kitchen (separated by commas) to get instant suggestions from the Chef without updating your permanent shelf:</p>
+              
+              <div class="quick-entry-row">
+                <input type="text" id="chef-text-input" placeholder="e.g., Roma Tomatoes, Long-grain Parboiled Rice, Chicken, Onions" style="flex: 1; padding: 12px 16px; background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-color); border-radius: 12px; color: var(--text-main); font-family: var(--font-body); font-size: 0.95rem; transition: all 0.3s ease;" autocomplete="off">
+                <button class="btn btn-primary" id="chef-text-submit-btn" style="padding: 12px 28px; border-radius: 12px; border: 1px solid rgba(252, 74, 26, 0.4); box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 4px 12px rgba(252, 74, 26, 0.2); font-weight: 700; transition: all 0.3s ease; white-space: nowrap;"><i class="fa-solid fa-magnifying-glass"></i> Parse & Suggest</button>
+              </div>
+              
+              <div id="chef-quick-tags-container" class="d-none" style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); margin-top: 5px;">
+                <div style="display: flex; flex-direction: column; gap: 14px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;">Custom Query Ingredients</span>
+                    <div style="display: flex; gap: 8px;">
+                      <button class="btn btn-accent btn-sm" id="chef-save-to-kitchen-btn" style="font-size: 0.78rem; padding: 8px 14px; border-radius: 10px; font-weight: 600;"><i class="fa-solid fa-plus"></i> Store in My Kitchen</button>
+                      <button class="btn btn-sm" id="chef-clear-custom-btn" style="font-size: 0.78rem; padding: 8px 14px; border-radius: 10px; background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); font-weight: 600;"><i class="fa-solid fa-trash-can"></i> Reset</button>
+                    </div>
+                  </div>
+                  <div id="chef-quick-tags-list" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                    <!-- Parsed tags will be rendered here -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chef Suggestions Section -->
+            <div id="chef-suggestions-section" class="glass-panel d-none" style="padding: 28px; margin-top: 24px; border-radius: 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h4 style="font-family: var(--font-display); font-size: 1.2rem; margin: 0; color: #fff; display: flex; align-items: center; gap: 8px;">
+                  <i class="fa-solid fa-hat-chef text-accent"></i> Suggested Recipes
+                </h4>
+                <span id="chef-suggestions-count-badge" class="badge badge-accent" style="font-size: 0.75rem; padding: 4px 10px; border-radius: 10px;">0 Suggested</span>
+              </div>
+              
+              <div id="chef-suggestions-loading" class="d-none" style="text-align: center; padding: 40px 0;">
+                <div class="animate-spin" style="display: inline-block; width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-top-color: var(--accent-color); border-radius: 50%; margin-bottom: 12px;"></div>
+                <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0;">Analyzing YouTube cooking feeds & Google Ground Search results...</p>
+              </div>
+              
+              <div id="chef-suggestions-grid" class="recipes-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                <!-- Recommended recipes will be rendered here dynamically -->
+                 <div class="empty-list-placeholder" style="grid-column: 1 / -1; padding: 40px 20px; text-align: center; border: 2px dashed var(--border-color); border-radius: 16px; width: 100%;">
+                   <i class="fa-solid fa-cookie-bite" style="font-size: 2.5rem; margin-bottom: 12px; opacity: 0.3; color: var(--text-muted);"></i>
+                   <p style="font-size: 0.85rem; color: var(--text-muted);">Type ingredients above and click "Parse & Suggest" to find recipes matching your ingredients!</p>
+                 </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Sponsored Kitchen Solutions -->
+        <div class="mt-8 max-w-5xl mx-auto px-4 w-full">
+          <div class="glass-panel flex flex-col w-full" style="padding: 24px; border: 1px solid rgba(247, 183, 51, 0.15); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4); display: flex; flex-direction: column;">
+            
+            <!-- Sponsored Solutions Header Row (Element A) -->
+            <div class="flex flex-row items-center justify-between w-full border-b border-neutral-800 pb-4 mb-4 gap-4 flex-wrap" style="display: flex; flex-direction: row; align-items: center; justify-content: space-between;">
+              <h3 class="text-base font-bold text-neutral-100" style="font-family: var(--font-display); margin: 0;">
+                Sponsored Kitchen Solutions
+              </h3>
+              <span class="inline-block text-[10px] tracking-wider uppercase font-extrabold text-amber-500 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/25" style="margin: 0; white-space: nowrap;">
+                📢 PAID SPONSORSHIP / ADVERTISEMENT
+              </span>
+            </div>
+
+            <!-- Description Block (Element B) -->
+            <p class="text-[11px] text-neutral-400 leading-relaxed w-full" style="max-width: none; margin: 0 0 24px 0; width: 100%;">
+              This section showcases premium culinary solutions from our verified partners. Your interaction with these sponsors helps keep THE CHEF's services and recipes 100% free.
+            </p>
+
+            <!-- Jumia Food Promo -->
+            <div class="jumia-promo-card shadow-md">
+              <div class="jumia-promo-content">
+                <img src="find_ingredients.png" alt="Local and Foreign Ingredients" class="jumia-promo-img">
+                <div class="jumia-promo-text">
+                  <h4 class="jumia-promo-title">Unlock Global Delicacies Instantly</h4>
+                  <p class="jumia-promo-desc">Don't let missing ingredients stop you. Find local and foreign ingredients near you.</p>
+                </div>
+              </div>
+              <button class="jumia-promo-btn" style="border: 0; outline: none; cursor: pointer;">
+                Shop Missing Items
+              </button>
+            </div>
+
+            <!-- Ingredients, Utensils & Raw Foodstuff Grid -->
+            <div class="sponsored-solutions-grid">
+              
+              <!-- Category 1: Ingredients -->
+              <div class="bg-[#121214] border border-neutral-800 rounded-xl p-4 flex flex-col justify-between hover:border-neutral-700 transition-colors">
+                <div>
+                  <img src="tomato_paste.jpg" alt="Premium Tomato Paste" class="w-full h-32 object-cover rounded-lg mb-3 border border-neutral-800">
+                  <div class="space-y-1">
+                    <span class="inline-block text-[9px] uppercase font-bold tracking-widest text-orange-500 bg-orange-500/5 px-2 py-0.5 rounded border border-orange-500/10">Ingredients</span>
+                    <h5 class="text-sm font-bold text-neutral-200" style="font-family: var(--font-display);">Premium Tomato Paste</h5>
+                    <p class="text-xs text-neutral-400 leading-relaxed">Perfect base texture for traditional stews, Jollof sauces, and rich marinades.</p>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between mt-4 pt-3 border-t border-neutral-900">
+                  <span class="text-xs bg-neutral-900 border border-neutral-800 px-3 py-1.5 rounded-xl font-bold text-neutral-200 whitespace-nowrap">
+                    🎟️ 10% OFF
+                  </span>
+                </div>
+              </div>
+
+              <!-- Category 2: Utensils -->
+              <div class="bg-[#121214] border border-neutral-800 rounded-xl p-4 flex flex-col justify-between hover:border-neutral-700 transition-colors">
+                <div>
+                  <img src="cast_iron.png" alt="Cast Iron Skillet" class="w-full h-32 object-cover rounded-lg mb-3 border border-neutral-800">
+                  <div class="space-y-1">
+                    <span class="inline-block text-[9px] uppercase font-bold tracking-widest text-blue-500 bg-blue-500/5 px-2 py-0.5 rounded border border-blue-500/10">Utensils</span>
+                    <h5 class="text-sm font-bold text-neutral-200" style="font-family: var(--font-display);">Tower Cast Iron Skillet</h5>
+                    <p class="text-xs text-neutral-400 leading-relaxed">Heavy-duty pre-seasoned cookware for high-heat searing and frying.</p>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between mt-4 pt-3 border-t border-neutral-900">
+                  <span class="text-xs text-blue-500 border border-blue-500/20 bg-blue-500/5 px-3 py-1.5 rounded-xl font-bold whitespace-nowrap cursor-pointer hover:bg-blue-500/15 transition-colors">
+                    🛒 Buy Now
+                  </span>
+                </div>
+              </div>
+
+              <!-- Category 3: Raw Foodstuff -->
+              <div class="bg-[#121214] border border-neutral-800 rounded-xl p-4 flex flex-col justify-between hover:border-neutral-700 transition-colors">
+                <div>
+                  <img src="raw_foodstuff.png" alt="Premium Raw Foodstuff" class="w-full h-32 object-cover rounded-lg mb-3 border border-neutral-800">
+                  <div class="space-y-1">
+                    <span class="inline-block text-[9px] uppercase font-bold tracking-widest text-amber-500 bg-amber-500/5 px-2 py-0.5 rounded border border-amber-500/10">Raw Foodstuff</span>
+                    <h5 class="text-sm font-bold text-neutral-200" style="font-family: var(--font-display);">Premium Raw Foodstuff</h5>
+                    <p class="text-xs text-neutral-400 leading-relaxed">Premium long-grain parboiled rice, flour, and raw pantry staples.</p>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between mt-4 pt-3 border-t border-neutral-900">
+                  <span class="text-xs text-amber-500 border border-amber-500/20 bg-amber-500/5 px-3 py-1.5 rounded-xl font-bold whitespace-nowrap cursor-pointer hover:bg-amber-500/15 transition-colors">
+                    🎟️ 5% OFF
+                  </span>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW: PROFILE -->
+      <section class="app-view" id="profile-view">
+        <div class="view-header">
+          <h1 class="view-title">User Profile</h1>
+          <p class="view-subtitle">Personalize your culinary dashboard, customize your chef profile, and watch your culinary rank grow as you log recipes.</p>
+        </div>
+
+        <div class="profile-layout">
+          <!-- Profile Card with Account Welcome Banner -->
+          <div class="glass-panel profile-settings-panel" id="profile-details-panel" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 30px;">
+            <div style="position: relative; margin-bottom: 20px;">
+              <img id="profile-welcome-avatar" src="data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot; fill=&quot;%23fc4a1a&quot;><circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;48&quot; fill=&quot;%231a1a1a&quot; stroke=&quot;%23fc4a1a&quot; stroke-width=&quot;2&quot;/><path d=&quot;M50 25c-8 0-14 6-14 14 0 3 1 5 2 7-6 2-10 8-10 15 0 8 6 14 14 14h16c8 0 14-6 14-14 0-7-4-13-10-15 1-2 2-4 2-7 0-8-6-14-14-14zm-12 40h24v6H38z&quot; fill=&quot;%23fc4a1a&quot;/></svg>" onerror="window.handleBrokenImage(this)" alt="Avatar" style="width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--accent-color); object-fit: cover; box-shadow: 0 8px 24px rgba(252,74,26,0.3);">
+            </div>
+            
+            <h2 id="profile-welcome-username" style="font-family: var(--font-display); font-size: 1.8rem; color: #fff; margin: 0 0 10px 0; font-weight: 700;">DOLE DE CHEF</h2>
+            
+            <!-- Culinary Rank Section -->
+            <div style="width: 100%; max-width: 280px; margin: 10px 0 20px 0;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px;">
+                <span>Culinary Rank</span>
+                <span style="font-weight: 700; color: var(--accent-color);"><span id="profile-rank-num">45</span> / 100</span>
+              </div>
+              <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden;">
+                <div id="profile-rank-bar" style="width: 45%; height: 100%; background: linear-gradient(90deg, #f0730a, var(--accent-color)); border-radius: 4px; box-shadow: 0 0 10px var(--accent-color); transition: width 0.4s ease;"></div>
+              </div>
+            </div>
+
+            <button type="button" class="btn" id="btn-edit-profile-trigger" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 10px 28px; border-radius: 24px; font-weight: 600; cursor: pointer; transition: all 0.2s; width: 100%; max-width: 220px;">
+              <i class="fa-solid fa-user-pen" style="margin-right: 6px; font-size: 0.85rem;"></i> Edit Profile
+            </button>
+          </div>
+
+          <!-- Rank Info Card -->
+          <div class="glass-panel profile-rank-panel">
+            <h3 class="panel-title"><i class="fa-solid fa-award text-accent"></i> Culinary Standing</h3>
+            <div class="rank-card-content">
+              <div class="rank-badge-container">
+                <div class="rank-badge-ring">
+                  <i class="fa-solid fa-trophy rank-badge-icon text-accent"></i>
+                </div>
+                <h2 class="rank-title" id="rank-title-text">Line Cook</h2>
+                <p class="rank-badge-sub" id="rank-description-text">Skill score 26-50. You can slice, dice, and handle busy kitchen rushes!</p>
+              </div>
+
+              <div class="profile-gamification-hub">
+                <div class="xp-bar-container">
+                  <div class="xp-bar-stats">
+                    <span style="font-weight: 600; color: #fff;"><i class="fa-solid fa-star text-accent"></i> Level <span id="user-level">1</span> (<span id="user-badge-title">Novice Cook</span>)</span>
+                    <span class="text-muted"><span id="user-current-xp">0</span> / <span id="user-next-level-xp">100</span> XP</span>
+                  </div>
+                  <div class="xp-bar-progress">
+                    <div class="xp-bar-fill" id="user-xp-fill" style="width: 0%;"></div>
+                  </div>
+                </div>
+
+                <h4 style="font-family: var(--font-display); font-size: 0.9rem; margin-top: 10px; margin-bottom: 5px; color: #fff;">Culinary Achievements</h4>
+                <div class="achievements-grid">
+                  <div class="achievement-card" id="achieve-kitchen-auditor">
+                    <i class="fa-solid fa-boxes-stacked achievement-icon"></i>
+                    <div class="achievement-title">Kitchen Auditor</div>
+                    <div class="achievement-desc">Log your first kitchen shelf ingredient.</div>
+                  </div>
+                  <div class="achievement-card" id="achieve-alchemist">
+                    <i class="fa-solid fa-flask achievement-icon"></i>
+                    <div class="achievement-title">Flavor Alchemist</div>
+                    <div class="achievement-desc">Save a custom secret recipe.</div>
+                  </div>
+                  <div class="achievement-card" id="achieve-globe-trotter">
+                    <i class="fa-solid fa-globe achievement-icon"></i>
+                    <div class="achievement-title">Globe Trotter</div>
+                    <div class="achievement-desc">Cook a recipe from another culture.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL: RECIPE DETAIL -->
+  <div class="modal-overlay" id="recipe-detail-modal">
+    <div class="glass-panel modal-card">
+      <button class="modal-close-btn" id="modal-close-btn"><i class="fa-solid fa-xmark"></i></button>
+      
+      <div class="modal-header-section">
+        <h2 class="modal-recipe-title" id="modal-title">Classic Nigerian Jollof Rice</h2>
+        <div class="modal-badges">
+          <span class="badge badge-primary" id="modal-culture">Nigerian</span>
+          <span class="badge badge-accent" id="modal-category">Lunch</span>
+        </div>
+      </div>
+
+      <div class="modal-body-scroll">
+        <!-- Video Section -->
+        <div class="modal-video-container">
+          <iframe id="modal-video-iframe" src="" title="Recipe Demonstration Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; compute-pressure" allowfullscreen></iframe>
+        </div>
+
+        <!-- Story Section -->
+        <div class="modal-section">
+          <h4 class="modal-section-title"><i class="fa-solid fa-earth-africa text-accent"></i> Cultural Story</h4>
+          <p class="modal-story-text" id="modal-story">Jollof Rice is a legendary tomato-infused dish cooked in chicken stock...</p>
+        </div>
+
+        <div class="modal-grid-columns">
+          <!-- Ingredients Checklist -->
+          <div class="modal-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <h4 class="modal-section-title" style="margin-bottom: 0;"><i class="fa-solid fa-list-check text-accent"></i> Ingredients Checklist</h4>
+              <div class="unit-toggle-container">
+                <span class="unit-toggle-label" id="unit-toggle-text">Metric</span>
+                <label class="unit-switch">
+                  <input type="checkbox" id="modal-unit-toggle">
+                  <span class="unit-slider"></span>
+                </label>
+              </div>
+            </div>
+            <div class="servings-control" style="display: none !important; align-items: center; justify-content: space-between; margin-bottom: 14px; padding: 8px 12px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: 8px;">
+              <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);"><i class="fa-solid fa-users text-accent" style="margin-right: 4px;"></i> Servings</span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <button type="button" class="btn-serving" id="btn-dec-servings" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: background 0.2s;">-</button>
+                <span id="display-servings" style="font-size: 0.9rem; font-weight: 700; color: var(--accent-color); min-width: 20px; text-align: center;">2</span>
+                <button type="button" class="btn-serving" id="btn-inc-servings" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: background 0.2s;">+</button>
+              </div>
+            </div>
+            <ul class="modal-ingredients-list" id="modal-ingredients-list">
+              <!-- Dynamically populated checkboxes -->
+            </ul>
+            
+            <!-- Local Substitutions Swap Panel -->
+            <div id="modal-swaps-panel" class="swap-panel d-none">
+              <div class="swap-panel-title">
+                <i class="fa-solid fa-arrows-rotate text-accent"></i>
+                <span>Cross-Cultural Swaps (Nigeria/Local Markets)</span>
+              </div>
+              <div id="modal-swaps-list">
+                <!-- Swap items -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Nutritional Grid & Info -->
+          <div class="modal-section">
+            <h4 class="modal-section-title"><i class="fa-solid fa-circle-info text-accent"></i> Nutrition Facts</h4>
+            <div class="nutrition-grid">
+              <div class="nutri-card">
+                <span class="nutri-val" id="nutri-calories">380</span>
+                <span class="nutri-lbl">Calories</span>
+              </div>
+              <div class="nutri-card">
+                <span class="nutri-val" id="nutri-protein">8g</span>
+                <span class="nutri-lbl">Protein</span>
+              </div>
+              <div class="nutri-card">
+                <span class="nutri-val" id="nutri-carbs">62g</span>
+                <span class="nutri-lbl">Carbs</span>
+              </div>
+              <div class="nutri-card">
+                <span class="nutri-val" id="nutri-fat">11g</span>
+                <span class="nutri-lbl">Fats</span>
+              </div>
+            </div>
+            <div class="nutrition-impact-box">
+              <h5>Health Impact</h5>
+              <p id="nutri-impact">Rich in Vitamin C from peppers and tomato base.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Procedure / Techniques -->
+        <div class="modal-section">
+          <h4 class="modal-section-title"><i class="fa-solid fa-circle-play text-accent"></i> Step-by-Step Procedure</h4>
+          <ol class="modal-procedure-list" id="modal-procedure-list">
+            <!-- Dynamically populated -->
+          </ol>
+        </div>
+
+        <!-- Sources & Grounding Section -->
+        <div class="modal-section" id="modal-sources-section" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; margin-top: 15px;">
+          <h4 class="modal-section-title" style="font-size: 0.85rem; color: var(--text-muted);"><i class="fa-solid fa-link text-accent"></i> Verified Reference Sources</h4>
+          <div id="modal-sources-list" style="display: flex; flex-direction: column; gap: 6px;">
+            <!-- Clickable source links -->
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHAREABLE SECRET MEAL DETAILS MODAL (LANDING PAGE OVERLAY) -->
+  <div class="modal-overlay" id="share-landing-modal">
+    <div class="glass-panel modal-card">
+      <button class="modal-close-btn" id="share-modal-close-btn"><i class="fa-solid fa-xmark"></i></button>
+      
+      <div class="modal-header-section">
+        <span class="share-banner-badge"><i class="fa-solid fa-share-nodes"></i> Shared Secret Recipe</span>
+        <h2 class="modal-recipe-title" id="share-modal-title">My Fusion Tacos</h2>
+        <div class="modal-badges">
+          <span class="badge badge-accent">Experimental Creation</span>
+        </div>
+      </div>
+
+      <div class="modal-body-scroll">
+        <div class="share-creator-banner">
+          <div class="creator-avatar">🍳</div>
+          <p>Created by your friend! Cook this secret recipe and explore <strong>THE CHEF AI</strong> to discover 9+ alternative cultural recipes you can make with the same ingredients!</p>
+        </div>
+
+        <!-- Optional Image or Video if provided -->
+        <div class="modal-video-container d-none" id="share-modal-media-container">
+          <iframe id="share-modal-video-iframe" class="d-none" src="" title="Recipe Demonstration Video" frameborder="0" allowfullscreen></iframe>
+          <img id="share-modal-image" class="d-none" src="" alt="Recipe Picture" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+
+        <div class="modal-section">
+          <h4 class="modal-section-title"><i class="fa-solid fa-apple-whole text-accent"></i> Recipe & Ingredients</h4>
+          <ul class="modal-ingredients-list" id="share-modal-ingredients-list">
+            <!-- Dynamically populated -->
+          </ul>
+        </div>
+
+        <div class="modal-section">
+          <h4 class="modal-section-title"><i class="fa-solid fa-kitchen-set text-accent"></i> Cooking Procedure</h4>
+          <ol class="modal-procedure-list" id="share-modal-procedure-list">
+            <!-- Dynamically populated -->
+          </ol>
+        </div>
+
+        <div class="modal-section">
+          <h4 class="modal-section-title"><i class="fa-solid fa-heart-pulse text-accent"></i> Nutritional Impact</h4>
+          <div class="nutrition-impact-box">
+            <p id="share-modal-nutrition">Healthy, high fiber, low carb.</p>
+          </div>
+        </div>
+        
+        <div class="share-landing-actions">
+          <button class="btn btn-primary btn-block" id="share-modal-explore-btn">
+            Explore THE CHEF App & Customize Your Kitchen
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAMERA CAPTURE MODAL -->
+  <div class="modal-overlay" id="camera-modal">
+    <div class="glass-panel modal-card" style="max-width: 480px;">
+      <button class="modal-close-btn" id="camera-modal-close-btn"><i class="fa-solid fa-xmark"></i></button>
+      
+      <div class="modal-header-section">
+        <h2 class="modal-recipe-title"><i class="fa-solid fa-camera text-accent"></i> Live Culinary Camera</h2>
+        <p class="modal-recipe-story" style="font-size: 0.8rem; margin-top: 4px;">Snap exactly 3 or 4 pictures of your plated meal to complete the upload.</p>
+      </div>
+
+      <div class="modal-body-scroll" style="padding-top: 10px;">
+        <div class="camera-stream-container" style="position: relative; border-radius: 12px; overflow: hidden; background: #080808; aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color);">
+          <video id="camera-video" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+          <canvas id="camera-canvas" style="display: none;"></canvas>
+        </div>
+
+        <div style="margin-top: 15px;">
+          <h4 style="font-size: 0.8rem; margin-bottom: 6px; font-weight: 600; color: var(--text-muted);">Captured Photos (<span id="camera-snap-count">0</span>/4):</h4>
+          <div id="camera-snapshots-list" style="display: flex; gap: 8px; flex-wrap: wrap; min-height: 70px; background: rgba(0,0,0,0.15); padding: 8px; border-radius: 8px; border: 1px solid var(--border-color);">
+            <!-- Thumbnails go here -->
+          </div>
+        </div>
+
+        <div style="margin-top: 20px; display: flex; gap: 12px;">
+          <button type="button" class="btn btn-accent btn-block" id="camera-capture-btn"><i class="fa-solid fa-circle-dot"></i> Snap Photo</button>
+          <button type="button" class="btn btn-primary btn-block d-none" id="camera-upload-btn"><i class="fa-solid fa-cloud-arrow-up"></i> Upload to CDN</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: YOUTUBE API KEY CONFIGURATION -->
+  <div class="modal-overlay" id="youtube-api-modal">
+    <div class="glass-panel modal-card" style="max-width: 480px;">
+      <button class="modal-close-btn" id="youtube-api-modal-close-btn"><i class="fa-solid fa-xmark"></i></button>
+      
+      <div class="modal-header-section">
+        <h2 class="modal-recipe-title"><i class="fa-brands fa-youtube text-accent"></i> YouTube API Config</h2>
+        <p class="modal-recipe-story" style="font-size: 0.8rem; margin-top: 4px;">Enter your Google Developer YouTube Data API Key to query real videos directly from the Feed page.</p>
+      </div>
+
+      <div class="modal-body-scroll" style="padding-top: 10px;">
+        <div class="form-group">
+          <label for="youtube-api-key-input">YouTube Data API Key (v3)</label>
+          <div style="position: relative; display: flex; align-items: center;">
+            <input type="password" id="youtube-api-key-input" placeholder="AIzaSy..." style="width: 100%; padding: 10px 40px 10px 14px; background: rgba(0,0,0,0.3); color: #fff; border: 1px solid var(--border-color); border-radius: 8px; font-family: monospace; font-size: 0.9rem;" autocomplete="off">
+            <i class="fa-regular fa-eye-slash" id="toggle-youtube-key-visibility" style="position: absolute; right: 14px; cursor: pointer; color: var(--text-muted); font-size: 1.1rem; line-height: 1;"></i>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 15px; font-size: 0.75rem; color: var(--text-muted); background: rgba(252,74,26,0.05); padding: 12px; border-radius: 8px; border: 1px solid rgba(252,74,26,0.15); line-height: 1.4;">
+          <div><i class="fa-solid fa-circle-info text-accent"></i> <strong>Safe Storage:</strong> The API Key is stored securely in your browser's <code>localStorage</code> database. It is never sent to any external server except Google's official YouTube API.</div>
+        </div>
+
+        <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; gap: 12px;">
+            <button type="button" class="btn btn-secondary btn-block" id="btn-test-youtube-api" style="flex: 1;"><i class="fa-solid fa-vial"></i> Test Key</button>
+            <button type="button" class="btn btn-primary btn-block" id="btn-save-youtube-api" style="flex: 1;"><i class="fa-solid fa-circle-check"></i> Save & Enter</button>
+          </div>
+          <button type="button" class="btn btn-block" id="btn-skip-youtube-api" style="background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid var(--border-color); padding: 10px 0; border-radius: 8px; font-weight: 600; cursor: pointer;">
+            Skip & Enter Application
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SECURE PROFILE CREATION & GATEWAY -->
+  <div class="modal-overlay" id="profile-gateway-modal">
+    <div class="glass-panel modal-card" style="max-width: 480px; padding: 30px;">
+      
+      <div class="modal-header-section" style="text-align: center; margin-bottom: 20px;">
+        <img src="chef_agent.jpg" alt="Chef AI Official Logo" style="width: 70px; height: 70px; border-radius: 50%; border: 2px solid var(--accent-color); margin-bottom: 12px; object-fit: cover;">
+        <h2 class="modal-recipe-title" style="font-size: 1.5rem; font-family: var(--font-display);"><i class="fa-solid fa-shield-halved text-accent"></i> THE CHEF AI Gateway</h2>
+        <p class="modal-recipe-story" style="font-size: 0.82rem; margin-top: 4px; color: var(--text-muted);">Create your secure culinary account to enter the agent dashboard.</p>
+      </div>
+
+      <div class="modal-body-scroll">
+        <form id="gateway-registration-form" class="app-form" style="display: flex; flex-direction: column; gap: 14px;">
+          
+          <div class="avatar-selection-area" style="margin-bottom: 5px;">
+            <label style="font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; display: block;">Select Chef Avatar</label>
+            <div class="avatar-picker-grid" id="gateway-avatar-picker" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+              <div class="avatar-opt active" data-avatar-url="data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot; fill=&quot;%23fc4a1a&quot;><circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;48&quot; fill=&quot;%231a1a1a&quot; stroke=&quot;%23fc4a1a&quot; stroke-width=&quot;2&quot;/><path d=&quot;M50 25c-8 0-14 6-14 14 0 3 1 5 2 7-6 2-10 8-10 15 0 8 6 14 14 14h16c8 0 14-6 14-14 0-7-4-13-10-15 1-2 2-4 2-7 0-8-6-14-14-14zm-12 40h24v6H38z&quot; fill=&quot;%23fc4a1a&quot;/></svg>">
+                <img src="data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot; fill=&quot;%23fc4a1a&quot;><circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;48&quot; fill=&quot;%231a1a1a&quot; stroke=&quot;%23fc4a1a&quot; stroke-width=&quot;2&quot;/><path d=&quot;M50 25c-8 0-14 6-14 14 0 3 1 5 2 7-6 2-10 8-10 15 0 8 6 14 14 14h16c8 0 14-6 14-14 0-7-4-13-10-15 1-2 2-4 2-7 0-8-6-14-14-14zm-12 40h24v6H38z&quot; fill=&quot;%23fc4a1a&quot;/></svg>" onerror="window.handleBrokenImage(this)" alt="Avatar 1" style="width: 100%; border-radius: 50%; object-fit: cover; aspect-ratio: 1; border: 2px solid transparent;">
+              </div>
+              <div class="avatar-opt" data-avatar-url="data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot; fill=&quot;%23f7b733&quot;><circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;48&quot; fill=&quot;%231a1a1a&quot; stroke=&quot;%23f7b733&quot; stroke-width=&quot;2&quot;/><path d=&quot;M30 40h40v30c0 5-4 9-9 9H39c-5 0-9-4-9-9V40zm4-8h32v4H34zm6-8h20v4H40z&quot; fill=&quot;%23f7b733&quot;/></svg>">
+                <img src="data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot; fill=&quot;%23f7b733&quot;><circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;48&quot; fill=&quot;%231a1a1a&quot; stroke=&quot;%23f7b733&quot; stroke-width=&quot;2&quot;/><path d=&quot;M30 40h40v30c0 5-4 9-9 9H39c-5 0-9-4-9-9V40zm4-8h32v4H34zm6-8h20v4H40z&quot; fill=&quot;%23f7b733&quot;/></svg>" onerror="window.handleBrokenImage(this)" alt="Avatar 2" style="width: 100%; border-radius: 50%; object-fit: cover; aspect-ratio: 1; border: 2px solid transparent;">
+              </div>
+              <div class="avatar-opt" data-avatar-url="data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot; fill=&quot;%232ecc71&quot;><circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;48&quot; fill=&quot;%231a1a1a&quot; stroke=&quot;%232ecc71&quot; stroke-width=&quot;2&quot;/><path d=&quot;M50 20c-4 0-7 12-7 20 0 6 2 12 4 16v16h6V56c2-4 4-10 4-16 0-8-3-20-7-20zm0 56c-1.5 0-3 1.5-3 3v8c0 1.5 1.5 3 3 3s3-1.5 3-3v-8c0-1.5-1.5-3-3-3z&quot; fill=&quot;%232ecc71&quot;/></svg>">
+                <img src="data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot; fill=&quot;%232ecc71&quot;><circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;48&quot; fill=&quot;%231a1a1a&quot; stroke=&quot;%232ecc71&quot; stroke-width=&quot;2&quot;/><path d=&quot;M50 20c-4 0-7 12-7 20 0 6 2 12 4 16v16h6V56c2-4 4-10 4-16 0-8-3-20-7-20zm0 56c-1.5 0-3 1.5-3 3v8c0 1.5 1.5 3 3 3s3-1.5 3-3v-8c0-1.5-1.5-3-3-3z&quot; fill=&quot;%232ecc71&quot;/></svg>" onerror="window.handleBrokenImage(this)" alt="Avatar 3" style="width: 100%; border-radius: 50%; object-fit: cover; aspect-ratio: 1; border: 2px solid transparent;">
+              </div>
+              <div class="avatar-opt" data-avatar-url="data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot; fill=&quot;%233498db&quot;><circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;48&quot; fill=&quot;%231a1a1a&quot; stroke=&quot;%233498db&quot; stroke-width=&quot;2&quot;/><path d=&quot;M50 25c7 0 12 5 12 12s-5 12-12 12-12-5-12-12 5-12 12-12zm-18 34c0-7 10-8 18-8s18 1 18 8v14H32V59z&quot; fill=&quot;%233498db&quot;/></svg>">
+                <img src="data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot; fill=&quot;%233498db&quot;><circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;48&quot; fill=&quot;%231a1a1a&quot; stroke=&quot;%233498db&quot; stroke-width=&quot;2&quot;/><path d=&quot;M50 25c7 0 12 5 12 12s-5 12-12 12-12-5-12-12 5-12 12-12zm-18 34c0-7 10-8 18-8s18 1 18 8v14H32V59z&quot; fill=&quot;%233498db&quot;/></svg>" onerror="window.handleBrokenImage(this)" alt="Avatar 4" style="width: 100%; border-radius: 50%; object-fit: cover; aspect-ratio: 1; border: 2px solid transparent;">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="gateway-name" style="font-size: 0.8rem; font-weight: 600;">Culinary Name</label>
+            <input type="text" id="gateway-name" placeholder="Enter your cooking name" required style="width: 100%; padding: 10px 14px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 8px; color: #fff; font-size: 0.9rem;" autocomplete="off">
+          </div>
+
+          <div class="form-group">
+            <label for="gateway-email" style="font-size: 0.8rem; font-weight: 600;">Gmail / Email Address</label>
+            <input type="email" id="gateway-email" placeholder="example@gmail.com" required style="width: 100%; padding: 10px 14px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 8px; color: #fff; font-size: 0.9rem;" autocomplete="off">
+          </div>
+
+          <div class="form-group">
+            <label for="gateway-password" style="font-size: 0.8rem; font-weight: 600;">Secure Password</label>
+            <input type="password" id="gateway-password" placeholder="Min 6 characters" required minlength="6" style="width: 100%; padding: 10px 14px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 8px; color: #fff; font-size: 0.9rem;" autocomplete="off">
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" style="padding: 12px; font-weight: 700; margin-top: 10px;">
+            <i class="fa-solid fa-circle-check"></i> Save Details & Login
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SECURE PROFILE FIREWALL -->
+  <div class="modal-overlay" id="profile-firewall-modal">
+    <div class="glass-panel modal-card" style="max-width: 400px; padding: 25px;">
+      <button class="modal-close-btn" id="profile-firewall-close-btn"><i class="fa-solid fa-xmark"></i></button>
+      
+      <div class="modal-header-section" style="text-align: center; margin-bottom: 20px;">
+        <h2 class="modal-recipe-title" style="font-size: 1.35rem; font-family: var(--font-display);"><i class="fa-solid fa-shield-halved text-accent"></i> Verification Required</h2>
+        <p class="modal-recipe-story" style="font-size: 0.8rem; margin-top: 4px; color: var(--text-muted);">Enter your registered Gmail and password to unlock and edit your profile details.</p>
+      </div>
+
+      <div class="modal-body-scroll">
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label style="font-size: 0.75rem; font-weight: 600;">Gmail Address</label>
+          <input type="email" id="firewall-email" placeholder="example@gmail.com" style="width: 100%; padding: 10px 14px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 8px; color: #fff; font-size: 0.85rem;" autocomplete="off">
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label style="font-size: 0.75rem; font-weight: 600;">Secure Password</label>
+          <input type="password" id="firewall-password" placeholder="••••••••" style="width: 100%; padding: 10px 14px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 8px; color: #fff; font-size: 0.85rem;" autocomplete="off">
+        </div>
+        
+        <button type="button" class="btn btn-accent btn-block" id="btn-unlock-profile" style="padding: 10px 14px; font-weight: 700;">
+          <i class="fa-solid fa-lock-open"></i> Unlock Profile
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT SECURE PROFILE DETAILS -->
+  <div class="modal-overlay" id="profile-edit-modal">
+    <div class="glass-panel modal-card" style="max-width: 540px; padding: 25px;">
+      <button class="modal-close-btn" id="profile-edit-close-btn"><i class="fa-solid fa-xmark"></i></button>
+      
+      <div class="modal-header-section" style="margin-bottom: 15px;">
+        <h2 class="modal-recipe-title" style="font-size: 1.4rem; font-family: var(--font-display);"><i class="fa-solid fa-user-gear text-accent"></i> Edit Profile</h2>
+      </div>
+
+      <div class="modal-body-scroll" style="max-height: 70vh; overflow-y: auto; padding-right: 5px;">
+        <form id="profile-settings-form" class="app-form">
+          <div class="avatar-selection-area" style="margin-bottom: 15px;">
+            <label style="font-size: 0.8rem; font-weight: 600;">Select Profile Avatar</label>
+            <div class="avatar-picker-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 5px;">
+              <div class="avatar-opt active" data-avatar-url="data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot; fill=&quot;%23fc4a1a&quot;><circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;48&quot; fill=&quot;%231a1a1a&quot; stroke=&quot;%23fc4a1a&quot; stroke-width=&quot;2&quot;/><path d=&quot;M50 25c-8 0-14 6-14 14 0 3 1 5 2 7-6 2-10 8-10 15 0 8 6 14 14 14h16c8 0 14-6 14-14 0-7-4-13-10-15 1-2 2-4 2-7 0-8-6-14-14-14zm-12 40h24v6H38z&quot; fill=&quot;%23fc4a1a&quot;/></svg>">
+                <img src="data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot; fill=&quot;%23fc4a1a&quot;><circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;48&quot; fill=&quot;%231a1a1a&quot; stroke=&quot;%23fc4a1a&quot; stroke-width=&quot;2&quot;/><path d=&quot;M50 25c-8 0-14 6-14 14 0 3 1 5 2 7-6 2-10 8-10 15 0 8 6 14 14 14h16c8 0 14-6 14-14 0-7-4-13-10-15 1-2 2-4 2-7 0-8-6-14-14-14zm-12 40h24v6H38z&quot; fill=&quot;%23fc4a1a&quot;/></svg>" onerror="window.handleBrokenImage(this)" alt="Avatar 1" style="width: 100%; border-radius: 50%; object-fit: cover; aspect-ratio: 1;">
+              </div>
+              <div class="avatar-opt" data-avatar-url="data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot; fill=&quot;%23f7b733&quot;><circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;48&quot; fill=&quot;%231a1a1a&quot; stroke=&quot;%23f7b733&quot; stroke-width=&quot;2&quot;/><path d=&quot;M30 40h40v30c0 5-4 9-9 9H39c-5 0-9-4-9-9V40zm4-8h32v4H34zm6-8h20v4H40z&quot; fill=&quot;%23f7b733&quot;/></svg>">
+                <img src="data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot; fill=&quot;%23f7b733&quot;><circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;48&quot; fill=&quot;%231a1a1a&quot; stroke=&quot;%23f7b733&quot; stroke-width=&quot;2&quot;/><path d=&quot;M30 40h40v30c0 5-4 9-9 9H39c-5 0-9-4-9-9V40zm4-8h32v4H34zm6-8h20v4H40z&quot; fill=&quot;%23f7b733&quot;/></svg>" onerror="window.handleBrokenImage(this)" alt="Avatar 2" style="width: 100%; border-radius: 50%; object-fit: cover; aspect-ratio: 1;">
+              </div>
+              <div class="avatar-opt" data-avatar-url="data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot; fill=&quot;%232ecc71&quot;><circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;48&quot; fill=&quot;%231a1a1a&quot; stroke=&quot;%232ecc71&quot; stroke-width=&quot;2&quot;/><path d=&quot;M50 20c-4 0-7 12-7 20 0 6 2 12 4 16v16h6V56c2-4 4-10 4-16 0-8-3-20-7-20zm0 56c-1.5 0-3 1.5-3 3v8c0 1.5 1.5 3 3 3s3-1.5 3-3v-8c0-1.5-1.5-3-3-3z&quot; fill=&quot;%232ecc71&quot;/></svg>">
+                <img src="data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot; fill=&quot;%232ecc71&quot;><circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;48&quot; fill=&quot;%231a1a1a&quot; stroke=&quot;%232ecc71&quot; stroke-width=&quot;2&quot;/><path d=&quot;M50 20c-4 0-7 12-7 20 0 6 2 12 4 16v16h6V56c2-4 4-10 4-16 0-8-3-20-7-20zm0 56c-1.5 0-3 1.5-3 3v8c0 1.5 1.5 3 3 3s3-1.5 3-3v-8c0-1.5-1.5-3-3-3z&quot; fill=&quot;%232ecc71&quot;/></svg>" onerror="window.handleBrokenImage(this)" alt="Avatar 3" style="width: 100%; border-radius: 50%; object-fit: cover; aspect-ratio: 1;">
+              </div>
+              <div class="avatar-opt" data-avatar-url="data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot; fill=&quot;%233498db&quot;><circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;48&quot; fill=&quot;%233498db&quot; stroke=&quot;%233498db&quot; stroke-width=&quot;2&quot;/><path d=&quot;M50 25c7 0 12 5 12 12s-5 12-12 12-12-5-12-12 5-12 12-12zm-18 34c0-7 10-8 18-8s18 1 18 8v14H32V59z&quot; fill=&quot;%233498db&quot;/></svg>">
+                <img src="data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot; fill=&quot;%233498db&quot;><circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;48&quot; fill=&quot;%233498db&quot; stroke=&quot;%233498db&quot; stroke-width=&quot;2&quot;/><path d=&quot;M50 25c7 0 12 5 12 12s-5 12-12 12-12-5-12-12 5-12 12-12zm-18 34c0-7 10-8 18-8s18 1 18 8v14H32V59z&quot; fill=&quot;%233498db&quot;/></svg>" onerror="window.handleBrokenImage(this)" alt="Avatar 4" style="width: 100%; border-radius: 50%; object-fit: cover; aspect-ratio: 1;">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group-row" style="display: flex; gap: 12px; margin-bottom: 12px;">
+            <div class="form-group" style="flex: 1;">
+              <label for="profile-name" style="font-size: 0.8rem; font-weight: 600;">Culinary Name</label>
+              <input type="text" id="profile-name" required style="width: 100%; padding: 10px 14px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 8px; color: #fff; font-size: 0.9rem;">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label style="font-size: 0.8rem; font-weight: 600;">Country / Region</label>
+              <div class="custom-dropdown" id="profile-country-dropdown">
+                <div class="custom-dropdown-trigger" id="profile-country-trigger">
+                  <span id="profile-country-selected-label">Nigeria</span>
+                  <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="custom-dropdown-menu" id="profile-country-menu">
+                  <div class="custom-dropdown-search">
+                    <input type="text" id="profile-country-search-input" placeholder="Search countries..." autocomplete="off">
+                  </div>
+                  <div class="custom-dropdown-list" id="profile-country-list">
+                    <!-- Dynamic items -->
+                  </div>
+                </div>
+              </div>
+              <input type="hidden" id="profile-country" value="Nigeria">
+            </div>
+          </div>
+
+          <div class="form-group-row" style="display: flex; gap: 12px; margin-bottom: 12px;">
+            <div class="form-group" style="flex: 1;">
+              <label for="profile-email" style="font-size: 0.8rem; font-weight: 600;">Email Address</label>
+              <input type="email" id="profile-email" required style="width: 100%; padding: 10px 14px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 8px; color: #fff; font-size: 0.9rem;">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label for="profile-password" style="font-size: 0.8rem; font-weight: 600;">Secure Password</label>
+              <input type="password" id="profile-password" required style="width: 100%; padding: 10px 14px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 8px; color: #fff; font-size: 0.9rem;">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label for="profile-skill-slider" style="font-size: 0.8rem; font-weight: 600;">Culinary Skill Level (<span id="skill-num-display">45</span>/100)</label>
+            <input type="range" id="profile-skill-slider" min="0" max="100" value="45" style="width: 100%;">
+          </div>
+
+          <div id="profile-youtube-api-section" style="margin: 15px 0; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05);">
+            <label style="font-weight: 700; color: #fff; margin-bottom: 6px; display: block;"><i class="fa-solid fa-key text-accent"></i> YouTube API Integration</label>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4;">Configure your YouTube Data API Key to query live videos on the Feed.</p>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <input type="password" id="profile-youtube-key-display" placeholder="No API Key configured" readonly style="flex: 1; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-muted); padding: 10px 14px; font-family: monospace; font-size: 0.85rem;" autocomplete="off">
+              <button type="button" class="btn btn-accent" id="btn-configure-youtube-api" style="white-space: nowrap; padding: 10px 16px;">
+                <i class="fa-solid fa-gears"></i> Configure
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" style="padding: 12px; font-weight: 700; margin-top: 10px;">
+            <i class="fa-solid fa-circle-check"></i> Save Changes
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom In-App Notification System -->
+  <div class="toast-container" id="toast-notifications">
+    <!-- Populated by JS -->
+  </div>
+
+  <!-- Core Scripts -->
+  <script src="recipes.js"></script>
+  <script src="youtubeService.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
