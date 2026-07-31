@@ -1,0 +1,22 @@
+export class KitchenTab {
+  constructor(root) {
+    this.root = root;
+    this.container = document.createElement('div');
+    this.container.className = 'app-view';
+    this.container.id = 'kitchen-view';
+  }
+
+  mount() {
+    const existing = document.getElementById('kitchen-view');
+    if (existing) {
+      existing.style.display = 'block';
+      this.container = existing;
+    }
+  }
+
+  unmount() {
+    if (this.container) {
+      this.container.style.display = 'none';
+    }
+  }
+}

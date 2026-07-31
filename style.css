@@ -1,8 +1,8 @@
 /* CSS Variables for Premium Aesthetics */
 :root {
-  --bg-primary: #0a0b0e;
-  --bg-secondary: #12141c;
-  --bg-tertiary: #1a1d28;
+  --bg-primary: #121212;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #242424;
   --accent: #fc4a1a;
   --accent-light: #f7b733;
   --accent-gradient: linear-gradient(135deg, #fc4a1a 0%, #f7b733 100%);
