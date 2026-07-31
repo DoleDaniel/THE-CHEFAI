@@ -1,7 +1,8 @@
 export class Router {
   constructor(routes) {
     this.routes = routes;
-    this.root = document.getElementById('app-root');
+    this.instances = {};
+    this.root = document.getElementById('app-root') || document.body;
     this.currentView = null;
   }
 
@@ -10,9 +11,12 @@ export class Router {
       this.currentView.unmount();
     }
     
-    const component = this.routes[path];
-    if (component) {
-      this.currentView = new component(this.root);
+    const ComponentClass = this.routes[path];
+    if (ComponentClass) {
+      if (!this.instances[path]) {
+        this.instances[path] = new ComponentClass(this.root);
+      }
+      this.currentView = this.instances[path];
       this.currentView.mount();
       
       // Update nav active states
