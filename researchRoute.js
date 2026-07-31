@@ -276,7 +276,9 @@ router.post('/research', async (req, res) => {
 
   // Persist updated learning data
   try {
-    fs.writeFileSync(activityPath, JSON.stringify(userActivity, null, 2));
+    if (!process.env.VERCEL) {
+      fs.writeFileSync(activityPath, JSON.stringify(userActivity, null, 2));
+    }
   } catch(e) {
     console.error("Error writing user_activity.json", e);
   }

@@ -2,13 +2,18 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
-const UPLOADS_DIR = path.join(__dirname, 'uploads');
-const MEALS_FILE = path.join(__dirname, 'mealsData.json');
+const UPLOADS_DIR = process.env.VERCEL ? path.join(os.tmpdir(), 'uploads') : path.join(__dirname, 'uploads');
+const MEALS_FILE = process.env.VERCEL ? path.join(os.tmpdir(), 'mealsData.json') : path.join(__dirname, 'mealsData.json');
 
 // Ensure uploads directory exists
-if (!fs.existsSync(UPLOADS_DIR)) {
-  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+try {
+  if (!fs.existsSync(UPLOADS_DIR)) {
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+  }
+} catch (err) {
+  console.error('[THE CHEF] Error creating uploads dir:', err);
 }
 
 // Helper to read meals JSON file
