@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 3000;
 // Enable secure CORS. Allowed origins can be specified in .env, defaulting to local dev environments.
 const allowedOrigins = process.env.ALLOWED_ORIGIN ? process.env.ALLOWED_ORIGIN.split(',') : ['http://localhost:3000', 'http://127.0.0.1:3000'];
 app.use(cors({
-  origin: function(origin, callback) {
+  origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     // or requests from allowed origins.
     if (!origin || allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
@@ -41,9 +41,12 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`==================================================`);
-  console.log(`  THE CHEF AI Backend running on port ${PORT}`);
-  console.log(`  Access the app at: http://localhost:${PORT}`);
-  console.log(`==================================================`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`==================================================`);
+    console.log(`  THE CHEF AI Backend running on port ${PORT}`);
+    console.log(`  Access the app at: http://localhost:${PORT}`);
+    console.log(`==================================================`);
+  });
+}
+module.exports = app;
