@@ -30,7 +30,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Serve static frontend files from the workspace root
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(process.cwd())));
 
 // Mount modular culinary research and meal routes
 app.use('/api', researchRoute);
@@ -38,7 +38,7 @@ app.use('/api', mealRoute);
 
 // Fallback to index.html for single page app routing if applicable
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(process.cwd(), 'index.html'));
 });
 
 if (process.env.NODE_ENV !== 'production') {
