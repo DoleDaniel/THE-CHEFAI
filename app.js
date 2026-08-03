@@ -171,9 +171,9 @@ function getCleanEmbedUrl(url, autoplay = false) {
     const parts = url.split("/embed/");
     videoId = parts[1].split("?")[0];
   } else {
-    videoId = validateAndExtractVideoId(url) || "lMviiY8CoaQ";
+    videoId = validateAndExtractVideoId(url) || "9JTQYVV-IUI";
   }
-  let embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=${autoplay ? 1 : 0}&rel=0&enablejsapi=1`;
+  let embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=${autoplay ? 1 : 0}&rel=0&enablejsapi=1`;
   const currentOrigin = window.location.origin;
   if (currentOrigin && currentOrigin !== "null" && window.location.protocol !== "file:") {
     embedUrl += `&origin=${encodeURIComponent(currentOrigin)}`;
@@ -264,7 +264,7 @@ class YouTubePlayerComponent {
     this.videoId = videoId;
     this.parentContainer = parentContainer;
     this.backupImageUrl = backupImageUrl || "jollof.png";
-    this.fallbackVideoId = fallbackVideoId || "lMviiY8CoaQ";
+    this.fallbackVideoId = fallbackVideoId || "9JTQYVV-IUI";
     this.state = {
       hasError: false
     };
@@ -437,7 +437,7 @@ class YouTubePlayerComponent {
         this.setState({ hasError: false });
         
         // Update source and re-init
-        this.iframeElement.src = getCleanEmbedUrl(`https://www.youtube-nocookie.com/embed/${workingFallbackId}`, true);
+        this.iframeElement.src = getCleanEmbedUrl(`https://www.youtube.com/embed/${workingFallbackId}`, true);
         setTimeout(() => {
           this.videoId = workingFallbackId;
           this.init();
@@ -474,7 +474,7 @@ function getReliableFallbackVideoId(culture, title) {
   const c = String(culture || "").toLowerCase();
   const t = String(title || "").toLowerCase();
   if (t.includes("egusi") || t.includes("soup")) return "xVQ0dDDUil4";
-  if (t.includes("jollof") || t.includes("rice")) return "lMviiY8CoaQ";
+  if (t.includes("jollof") || t.includes("rice")) return "9JTQYVV-IUI";
   if (c.includes("nigerian")) return "xVQ0dDDUil4";
   if (t.includes("quesadilla")) return "hFLFBVnImU4";
   if (t.includes("burrito")) return "VyEJTODAd2M";
@@ -745,7 +745,7 @@ window.playFallbackVideo = function(playerId, fallbackId, buttonElement) {
   const container = buttonElement.closest('.feed-video-placeholder') || buttonElement.closest('.modal-video-container') || buttonElement.closest('#share-modal-media-container');
   if (container) {
     container.innerHTML = `
-      <iframe id="${playerId}" src="${getCleanEmbedUrl(`https://www.youtube-nocookie.com/embed/${fallbackId}`, true)}" 
+      <iframe id="${playerId}" src="${getCleanEmbedUrl(`https://www.youtube.com/embed/${fallbackId}`, true)}" 
               style="width: 100%; height: 100%; border: none;" 
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; compute-pressure" 
               allowfullscreen>
@@ -1157,7 +1157,7 @@ async function fetchYoutubeFeedVideos() {
         impact: "This is a live cooking demonstration fetched directly from YouTube."
       },
       image: video.thumbnailUrl,
-      videoUrl: `https://www.youtube-nocookie.com/embed/${video.videoId}`,
+      videoUrl: `https://www.youtube.com/embed/${video.videoId}`,
       isYoutubeVideo: true,
       channelTitle: video.channelTitle,
       channelId: video.channelId || null
@@ -1180,7 +1180,7 @@ async function fetchYoutubeFeedVideos() {
         impact: "This is a live travel food experience fetched directly from YouTube."
       },
       image: video.thumbnailUrl,
-      videoUrl: `https://www.youtube-nocookie.com/embed/${video.videoId}`,
+      videoUrl: `https://www.youtube.com/embed/${video.videoId}`,
       isYoutubeVideo: true,
       channelTitle: video.channelTitle,
       channelId: video.channelId || null
@@ -1203,7 +1203,7 @@ async function fetchYoutubeFeedVideos() {
         impact: "This is a food challenge demonstration fetched directly from YouTube."
       },
       image: video.thumbnailUrl,
-      videoUrl: `https://www.youtube-nocookie.com/embed/${video.videoId}`,
+      videoUrl: `https://www.youtube.com/embed/${video.videoId}`,
       isYoutubeVideo: true,
       channelTitle: video.channelTitle,
       channelId: video.channelId || null
@@ -1296,7 +1296,7 @@ async function loadMoreFeedVideos() {
         impact: "This is a live cooking demonstration fetched directly from YouTube."
       },
       image: video.thumbnailUrl,
-      videoUrl: `https://www.youtube-nocookie.com/embed/${video.videoId}`,
+      videoUrl: `https://www.youtube.com/embed/${video.videoId}`,
       isYoutubeVideo: true,
       channelTitle: video.channelTitle,
       channelId: video.channelId || null
@@ -1318,7 +1318,7 @@ async function loadMoreFeedVideos() {
         impact: "This is a live travel food experience fetched directly from YouTube."
       },
       image: video.thumbnailUrl,
-      videoUrl: `https://www.youtube-nocookie.com/embed/${video.videoId}`,
+      videoUrl: `https://www.youtube.com/embed/${video.videoId}`,
       isYoutubeVideo: true,
       channelTitle: video.channelTitle,
       channelId: video.channelId || null
@@ -1587,8 +1587,8 @@ function createRecipeCardElement(recipe) {
 
     if (recipe.isYoutubeVideo) {
       const rawId = recipe.videoUrl;
-      const videoId = validateAndExtractVideoId(rawId) || "lMviiY8CoaQ";
-      const embedUrl = getCleanEmbedUrl(`https://www.youtube-nocookie.com/embed/${videoId}`, true);
+      const videoId = validateAndExtractVideoId(rawId) || "9JTQYVV-IUI";
+      const embedUrl = getCleanEmbedUrl(`https://www.youtube.com/embed/${videoId}`, true);
       placeholder.innerHTML = `
         <iframe id="${iframeId}" src="${embedUrl}" 
                 style="width: 100%; height: 100%; border: none;" 
@@ -1605,7 +1605,7 @@ function createRecipeCardElement(recipe) {
         .then(videos => {
           const videoId = (videos && videos.length > 0) ? validateAndExtractVideoId(videos[0].videoId) : null;
           if (videoId) {
-            const embedUrl = getCleanEmbedUrl(`https://www.youtube-nocookie.com/embed/${videoId}`, true);
+            const embedUrl = getCleanEmbedUrl(`https://www.youtube.com/embed/${videoId}`, true);
             placeholder.innerHTML = `
               <iframe id="${iframeId}" src="${embedUrl}" 
                       style="width: 100%; height: 100%; border: none;" 
@@ -1623,8 +1623,8 @@ function createRecipeCardElement(recipe) {
         })
         .catch(() => {
           const rawId = recipe.videoUrl;
-          const videoId = validateAndExtractVideoId(rawId) || "lMviiY8CoaQ";
-          const embedUrl = getCleanEmbedUrl(`https://www.youtube-nocookie.com/embed/${videoId}`, true);
+          const videoId = validateAndExtractVideoId(rawId) || "9JTQYVV-IUI";
+          const embedUrl = getCleanEmbedUrl(`https://www.youtube.com/embed/${videoId}`, true);
           placeholder.innerHTML = `
             <iframe id="${iframeId}" src="${embedUrl}" 
                     style="width: 100%; height: 100%; border: none;" 
@@ -2585,7 +2585,7 @@ async function fetchAndRenderChefSuggestions() {
       if (matchCount >= minRequiredMatches || isPantryFlexMatch) {
         const matchRatio = matchCount / recipe.core_ingredients.length;
         const ytVideoId = (recipe.youtubeVideoIds && recipe.youtubeVideoIds.length > 0) ? recipe.youtubeVideoIds[0] : (recipe.youtubeVideoId || "");
-        const videoUrl = ytVideoId ? `https://www.youtube-nocookie.com/embed/${ytVideoId}` : (recipe.videoUrl || "");
+        const videoUrl = ytVideoId ? `https://www.youtube.com/embed/${ytVideoId}` : (recipe.videoUrl || "");
 
         const localRecipe = RECIPES.find(r => r.id === recipe.id);
         const recipeCategory = localRecipe ? localRecipe.category : "Dinner";
@@ -2746,7 +2746,7 @@ async function fetchAndRenderChefSuggestions() {
                 imageUrl: video.thumbnailUrl || localDbMatch.image,
                 image: video.thumbnailUrl || localDbMatch.image,
                 youtubeVideoId: video.videoId,
-                videoUrl: `https://www.youtube-nocookie.com/embed/${video.videoId}`,
+                videoUrl: `https://www.youtube.com/embed/${video.videoId}`,
                 procedure: localDbMatch.procedure,
                 ingredients: localDbMatch.ingredients,
                 nutrition: localDbMatch.nutrition,
@@ -2810,7 +2810,7 @@ async function fetchAndRenderChefSuggestions() {
                 imageUrl: video.thumbnailUrl,
                 image: video.thumbnailUrl,
                 youtubeVideoId: video.videoId,
-                videoUrl: `https://www.youtube-nocookie.com/embed/${video.videoId}`,
+                videoUrl: `https://www.youtube.com/embed/${video.videoId}`,
                 procedure: [
                   "Watch the live video demonstration above to see the full cooking procedures, step-by-step techniques, and culinary tips for this dish!"
                 ],
@@ -3260,7 +3260,7 @@ function openRecipeModal(recipe) {
 
   const targetVideoId = recipe.youtubeVideoId || validateAndExtractVideoId(recipe.videoUrl);
   if (targetVideoId) {
-    iframe.src = getCleanEmbedUrl(`https://www.youtube-nocookie.com/embed/${targetVideoId}`);
+    iframe.src = getCleanEmbedUrl(`https://www.youtube.com/embed/${targetVideoId}`);
     setTimeout(() => {
       attachYoutubePlayerWithFallback(iframe, targetVideoId, modalVideoContainer, backupImg, fallbackVideoId);
     }, 300);
@@ -3269,21 +3269,21 @@ function openRecipeModal(recipe) {
       .then(videos => {
         const videoId = (videos && videos.length > 0) ? validateAndExtractVideoId(videos[0].videoId) : null;
         if (videoId) {
-          iframe.src = getCleanEmbedUrl(`https://www.youtube-nocookie.com/embed/${videoId}`);
+          iframe.src = getCleanEmbedUrl(`https://www.youtube.com/embed/${videoId}`);
           setTimeout(() => {
             attachYoutubePlayerWithFallback(iframe, videoId, modalVideoContainer, backupImg, fallbackVideoId);
           }, 300);
         } else {
-          const fallbackId = validateAndExtractVideoId(recipe.videoUrl) || "lMviiY8CoaQ";
-          iframe.src = getCleanEmbedUrl(`https://www.youtube-nocookie.com/embed/${fallbackId}`);
+          const fallbackId = validateAndExtractVideoId(recipe.videoUrl) || "9JTQYVV-IUI";
+          iframe.src = getCleanEmbedUrl(`https://www.youtube.com/embed/${fallbackId}`);
           setTimeout(() => {
             attachYoutubePlayerWithFallback(iframe, fallbackId, modalVideoContainer, backupImg, fallbackVideoId);
           }, 300);
         }
       })
       .catch(() => {
-        const fallbackId = validateAndExtractVideoId(recipe.videoUrl) || "lMviiY8CoaQ";
-        iframe.src = getCleanEmbedUrl(`https://www.youtube-nocookie.com/embed/${fallbackId}`);
+        const fallbackId = validateAndExtractVideoId(recipe.videoUrl) || "9JTQYVV-IUI";
+        iframe.src = getCleanEmbedUrl(`https://www.youtube.com/embed/${fallbackId}`);
         setTimeout(() => {
           attachYoutubePlayerWithFallback(iframe, fallbackId, modalVideoContainer, backupImg, fallbackVideoId);
         }, 300);
@@ -3523,8 +3523,8 @@ function openShareModalDirectly(meal) {
   img.classList.add("d-none");
 
   if (meal.videoUrl) {
-    const videoId = validateAndExtractVideoId(meal.videoUrl) || "lMviiY8CoaQ";
-    iframe.src = getCleanEmbedUrl(`https://www.youtube-nocookie.com/embed/${videoId}`);
+    const videoId = validateAndExtractVideoId(meal.videoUrl) || "9JTQYVV-IUI";
+    iframe.src = getCleanEmbedUrl(`https://www.youtube.com/embed/${videoId}`);
     iframe.classList.remove("d-none");
     setTimeout(() => {
       attachYoutubePlayerWithFallback(iframe, videoId, container, meal.imgUrl, fallbackVideoId);
@@ -5174,5 +5174,8 @@ function shuffleArray(array) {
   }
   return array;
 }
+
+
+
 
 

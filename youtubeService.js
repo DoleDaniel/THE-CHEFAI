@@ -11,7 +11,7 @@ const mockRecipeFeedData = [
     thumbnailUrl: "egusi.png"
   },
   {
-    videoId: "lMviiY8CoaQ",
+    videoId: "9JTQYVV-IUI",
     title: "The Ultimate Classic Nigerian Jollof Rice Recipe",
     description: "Smoky, authentic, and perfect party-style Jollof Rice made step-by-step.",
     channelTitle: "Gourmet Explorer",
@@ -115,7 +115,7 @@ async function fetchYoutubeCulinaryVideos(query, apiKey, maxResults = 5, pageTok
       thumbnailUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=800"
     },
     {
-      videoId: "lMviiY8CoaQ",
+      videoId: "9JTQYVV-IUI",
       title: "Classic Nigerian Jollof Rice",
       description: "Legendary West African smoky, tomato-infused party style rice.",
       channelTitle: "African Food Network",
@@ -129,3 +129,4 @@ async function fetchYoutubeCulinaryVideos(query, apiKey, maxResults = 5, pageTok
   results.nextPageToken = "mock-token-" + Math.random().toString(36).substr(2, 5);
   return results;
 }
+
