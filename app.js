@@ -908,7 +908,11 @@ function saveProfileToStorage() {
 async function loadSecretMealsFromServer() {
   try {
     const res = await fetch('/api/meals');
-    if (res.ok) {
+      if (res.ok) {
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Received HTML instead of JSON for secret meals");
+        }
       const data = await res.json();
       if (data.success && Array.isArray(data.meals)) {
         state.secretMeals = data.meals;
@@ -3215,7 +3219,13 @@ function openRecipeModal(recipe) {
         ingredients: recipe.ingredients || []
       })
     })
-    .then(r => r.json())
+    .then(r => {
+        const contentType = r.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Received non-JSON response for research data");
+        }
+        return r.json();
+      })
     .then(res => {
       recipe.hasBeenResearched = true;
       if (res.success && res.data) {
@@ -4760,91 +4770,6 @@ function setupEventListeners() {
       badge.textContent = "Using My Kitchen Shelf";
       badge.className = "badge badge-primary";
       runChefEngine();
-    });
-  }
-}
-
-  // Close modal
-  const closeModal = () => {
-    modal.classList.remove("active");
-  };
-
-  if (closeBtn) closeBtn.addEventListener("click", closeModal);
-  
-  window.addEventListener("click", (e) => {
-    if (e.target === modal) {
-      closeModal();
-    }
-  });
-
-  // Toggle key visibility
-  if (toggleVisibility && keyInput) {
-    toggleVisibility.addEventListener("click", () => {
-      if (keyInput.type === "password") {
-        keyInput.type = "text";
-        toggleVisibility.className = "fa-regular fa-eye";
-      } else {
-        keyInput.type = "password";
-        toggleVisibility.className = "fa-regular fa-eye-slash";
-      }
-    });
-  }
-
-  // Save API Key
-  if (saveBtn) {
-    saveBtn.addEventListener("click", () => {
-      const keyVal = keyInput.value.trim();
-      "" = keyVal;
-      localStorage.setItem("the_chef_youtube_api_key", keyVal);
-      // Reset fetch state to pull fresh videos for the new key
-      state.youtubeFeedVideos = [];
-      state.youtubeFeedVideosFetched = false;
-      fetchYoutubeFeedVideos();
-      renderProfile();
-      closeModal();
-      showToast("API Key Stored", "Your YouTube Data API Key has been saved locally.", "success");
-    });
-  }
-
-  // Skip API Key setup
-  const skipBtn = document.getElementById("btn-skip-youtube-api");
-  if (skipBtn) {
-    skipBtn.addEventListener("click", () => {
-      closeModal();
-      showToast("Welcome to THE CHEF", "Using default offline recipe demonstration backups.", "info");
-    });
-  }
-
-  // Test API Key
-  if (testBtn && keyInput) {
-    testBtn.addEventListener("click", async () => {
-      const keyVal = keyInput.value.trim();
-      if (!keyVal) {
-        showToast("Key Missing", "Please enter a YouTube Data API Key to test.", "warning");
-        return;
-      }
-
-      testBtn.disabled = true;
-      const originalText = testBtn.innerHTML;
-      testBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Connecting...`;
-
-      try {
-        const testUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=cooking&key=${keyVal}&maxResults=1`;
-        const response = await fetch(testUrl);
-        
-        if (response.ok) {
-          showToast("API Key Valid", "Successfully authenticated with YouTube API v3!", "success");
-        } else {
-          const errData = await response.json();
-          const msg = errData.error?.message || "Invalid developer key parameters.";
-          showToast("API Validation Failed", `YouTube Error: ${msg}`, "error");
-        }
-      } catch (err) {
-        showToast("Network Timeout", "Unable to establish connection to Google Services.", "error");
-      } finally {
-        testBtn.disabled = false;
-        testBtn.innerHTML = originalText;
-      }
     });
   }
 }

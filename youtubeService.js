@@ -45,6 +45,10 @@ async function fetchYoutubeCulinaryVideos(query, apiKey, maxResults = 5, pageTok
     }
     const response = await fetch(proxyUrl);
     if (response.ok) {
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Received non-JSON response from proxy (likely a static fallback HTML page on Netlify).");
+      }
       const resJson = await response.json();
       if (resJson.success && resJson.items) {
         console.log("🎬 YouTube search resolved successfully from backend proxy.");
