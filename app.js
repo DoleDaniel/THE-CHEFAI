@@ -976,9 +976,39 @@ function setupNavigation() {
   });
 
   const navLinks = document.querySelectorAll('.nav-link');
+  const mobileTabToggle = document.getElementById('mobile-tab-toggle');
+  const mainNavMenu = document.getElementById('main-nav-menu');
+  const mobileActiveText = document.getElementById('mobile-active-text');
+  const mobileActiveIcon = document.getElementById('mobile-active-icon');
+
+  if (mobileTabToggle && mainNavMenu) {
+    mobileTabToggle.addEventListener('click', () => {
+      mainNavMenu.classList.toggle('show-dropdown');
+      mobileTabToggle.classList.toggle('open');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!mobileTabToggle.contains(e.target) && !mainNavMenu.contains(e.target)) {
+        mainNavMenu.classList.remove('show-dropdown');
+        mobileTabToggle.classList.remove('open');
+      }
+    });
+  }
+
   navLinks.forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
+      
+      if (mainNavMenu && mobileTabToggle) {
+        mainNavMenu.classList.remove('show-dropdown');
+        mobileTabToggle.classList.remove('open');
+        
+        const span = link.querySelector('span');
+        const icon = link.querySelector('i');
+        if (span && mobileActiveText) mobileActiveText.textContent = span.textContent;
+        if (icon && mobileActiveIcon) mobileActiveIcon.className = icon.className;
+      }
+      
       const targetId = link.getAttribute('data-target');
       router.navigate(targetId);
     });
