@@ -1,29 +1,30 @@
 const fs = require('fs');
-const oldApp = fs.readFileSync('app_old.js', 'utf16le');
+
+const oldApp = fs.readFileSync('app_old_utf8.js', 'utf8');
 const currentApp = fs.readFileSync('app.js', 'utf8');
 
 const startMarker = 'function setupEventListeners() {';
-const endMarker = 'function setupCountryDropdown() {';
+const endMarker = 'function getYoutubeThumbnail(recipe) {';
 
 const startIdx = oldApp.indexOf(startMarker);
 const endIdx = oldApp.indexOf(endMarker);
 
 if (startIdx === -1 || endIdx === -1) {
-  console.log("Could not find boundaries in app_old.js");
-  console.log("startIdx:", startIdx, "endIdx:", endIdx);
+  console.error("Could not find boundaries in old app.");
   process.exit(1);
 }
 
-const functionBody = oldApp.substring(startIdx, endIdx);
+const extractedCode = oldApp.substring(startIdx, endIdx);
 
-const insertTarget = 'function setupCountryDropdown() {';
-const targetIdx = currentApp.indexOf(insertTarget);
+const insertMarker = 'function setupCountryDropdown() {';
+const insertIdx = currentApp.indexOf(insertMarker);
 
-if (targetIdx === -1) {
-  console.log("Could not find target in app.js");
+if (insertIdx === -1) {
+  console.error("Could not find insert target in current app.");
   process.exit(1);
 }
 
-const newApp = currentApp.substring(0, targetIdx) + functionBody + currentApp.substring(targetIdx);
+const newApp = currentApp.substring(0, insertIdx) + extractedCode + currentApp.substring(insertIdx);
+
 fs.writeFileSync('app.js', newApp);
-console.log("Successfully restored missing setup functions");
+console.log("Restored missing functions successfully!");
