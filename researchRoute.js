@@ -491,6 +491,7 @@ router.get('/youtube/videos', async (req, res) => {
   url.searchParams.append("part", "snippet");
   url.searchParams.append("type", "video");
   url.searchParams.append("videoEmbeddable", "true");
+  url.searchParams.append("videoSyndicated", "true");
   url.searchParams.append("q", query);
   url.searchParams.append("key", apiKey);
   url.searchParams.append("maxResults", maxResults.toString());
