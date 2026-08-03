@@ -785,7 +785,7 @@ let state = {
   feedSearchQuery: "",
   chefQueryIngredients: [],
   useImperialUnits: false,
-  youtubeApiKey: "",
+  
   youtubeFeedVideos: [],
   youtubeFeedVideosFetched: false,
   lastYoutubeQuery: "",
@@ -800,41 +800,16 @@ let state = {
  * Check if the backend has a YouTube API key configured.
  * If yes, auto-configure client state to use the backend proxy.
  */
-async function checkBackendYoutubeKey() {
-  try {
-    const response = await fetch(`${window.API_BASE_URL || ''}/api/youtube/status`);
-    if (response.ok) {
-      const data = await response.json();
-      if (data.hasKey) {
-        console.log("🔒 Backend YouTube API Key is active. Disabling key input prompts.");
-        state.youtubeApiKey = "backend-managed";
-        
-        // Hide/dismiss YouTube API modal if it was shown or scheduled
-        const apiModal = document.getElementById("youtube-api-modal");
-        if (apiModal) {
-          apiModal.classList.remove("active");
-        }
-        
-        // Trigger fetch of YouTube videos since we have a valid key now
-        debouncedFetchYoutubeFeedVideos();
 
-        // Update profile UI to reflect backend status
-        renderProfile();
-      }
-    }
-  } catch (error) {
-    console.error("Error checking backend YouTube API key status:", error);
-  }
-}
 
 // Initial setup on page load
 document.addEventListener("DOMContentLoaded", () => {
   loadLocalStorage();
   loadSecretMealsFromServer();
-  checkBackendYoutubeKey();
+  
   setupNavigation();
   setupEventListeners();
-  setupYoutubeApiKeyModal();
+  
   setupCountryDropdown();
   setupProfileGateway();
   setupProfileFirewall();
@@ -863,7 +838,7 @@ document.addEventListener("DOMContentLoaded", () => {
   } else {
     // Otherwise, show YouTube API Key modal if not present and not backend-managed
     setTimeout(() => {
-      if (!state.youtubeApiKey) {
+      if (!"") {
         const apiModal = document.getElementById("youtube-api-modal");
         if (apiModal) {
           apiModal.classList.add("active");
@@ -889,7 +864,7 @@ function loadLocalStorage() {
   const localKitchen = localStorage.getItem("the_chef_kitchen");
   const localSecretMeals = localStorage.getItem("the_chef_secrets");
   const localProfile = localStorage.getItem("the_chef_profile");
-  state.youtubeApiKey = localStorage.getItem("the_chef_youtube_api_key") || "";
+  "" = localStorage.getItem("the_chef_youtube_api_key") || "";
 
   if (localKitchen) {
     state.kitchenIngredients = JSON.parse(localKitchen);
@@ -1150,15 +1125,15 @@ async function fetchYoutubeFeedVideos() {
     console.log(`[THE CHEF] Fetching YouTube videos. Cooking query: "${cookingQuery}", Travel query: "${travelQuery}", Challenge query: "${challengeQuery}"`);
     
     // Fetch cooking videos
-    const cookingVideos = await fetchYoutubeCulinaryVideos(cookingQuery, state.youtubeApiKey, 14);
+    const cookingVideos = await fetchYoutubeCulinaryVideos(cookingQuery, "", 14);
     state.youtubeCookingNextPageToken = cookingVideos.nextPageToken || "";
 
     // Fetch travel food videos
-    const travelVideos = await fetchYoutubeCulinaryVideos(travelQuery, state.youtubeApiKey, 14);
+    const travelVideos = await fetchYoutubeCulinaryVideos(travelQuery, "", 14);
     state.youtubeTravelNextPageToken = travelVideos.nextPageToken || "";
 
     // Fetch challenge videos from all continents
-    const challengeVideos = await fetchYoutubeCulinaryVideos(challengeQuery, state.youtubeApiKey, 14);
+    const challengeVideos = await fetchYoutubeCulinaryVideos(challengeQuery, "", 14);
     state.youtubeChallengeNextPageToken = challengeVideos.nextPageToken || "";
     
     // Map cooking videos
@@ -1291,10 +1266,10 @@ async function loadMoreFeedVideos() {
   const travelLabel = state.feedSearchQuery ? `${state.feedSearchQuery} Food Travel` : "Food Travel";
 
   try {
-    const cookingRes = await fetchYoutubeCulinaryVideos(cookingQuery, state.youtubeApiKey, 10, state.youtubeCookingNextPageToken);
+    const cookingRes = await fetchYoutubeCulinaryVideos(cookingQuery, "", 10, state.youtubeCookingNextPageToken);
     state.youtubeCookingNextPageToken = cookingRes.nextPageToken || "";
 
-    const travelRes = await fetchYoutubeCulinaryVideos(travelQuery, state.youtubeApiKey, 10, state.youtubeTravelNextPageToken);
+    const travelRes = await fetchYoutubeCulinaryVideos(travelQuery, "", 10, state.youtubeTravelNextPageToken);
     state.youtubeTravelNextPageToken = travelRes.nextPageToken || "";
 
     // Remove spinner
@@ -1621,8 +1596,8 @@ function createRecipeCardElement(recipe) {
         const newIframe = document.getElementById(iframeId);
         if (newIframe) attachYoutubePlayerWithFallback(newIframe, videoId, placeholder, imageUrl, fallbackVideoId);
       }, 300);
-    } else if (state.youtubeApiKey) {
-      fetchYoutubeCulinaryVideos(recipe.culture + " " + recipe.name + " recipe", state.youtubeApiKey, 1)
+    } else {
+      fetchYoutubeCulinaryVideos(recipe.culture + " " + recipe.name + " recipe", "", 1)
         .then(videos => {
           const videoId = (videos && videos.length > 0) ? validateAndExtractVideoId(videos[0].videoId) : null;
           if (videoId) {
@@ -1889,7 +1864,7 @@ function renderProfile() {
   const apiSection = document.getElementById("profile-youtube-api-section");
   const configBtn = document.getElementById("btn-configure-youtube-api");
   
-  if (state.youtubeApiKey === "backend-managed") {
+  if ("" === "backend-managed") {
     if (apiSection) apiSection.style.display = "block";
     if (apiDisplay) {
       apiDisplay.value = "••••••••••••••••••••••••••••••••";
@@ -1904,11 +1879,11 @@ function renderProfile() {
     }
   } else {
     if (apiSection) {
-      apiSection.style.display = state.youtubeApiKey ? "none" : "block";
+      apiSection.style.display = "" ? "none" : "block";
     }
     if (apiDisplay) {
-      apiDisplay.value = state.youtubeApiKey ? "••••••••••••••••••••••••••••••••" : "";
-      apiDisplay.placeholder = state.youtubeApiKey ? "••••••••••••••••••••••••••••••••" : "No API Key configured";
+      apiDisplay.value = "" ? "••••••••••••••••••••••••••••••••" : "";
+      apiDisplay.placeholder = "" ? "••••••••••••••••••••••••••••••••" : "No API Key configured";
       apiDisplay.style.color = "var(--text-muted)";
     }
     if (configBtn) {
@@ -2735,7 +2710,7 @@ async function fetchAndRenderChefSuggestions() {
           : `${cuisineKeyword}${queryTerms.join(" + ")} ${mealTimeKeyword} recipe cooking`;
         
         console.log(`[THE CHEF] Fetching dynamic suggestions from YouTube for query: "${searchQuery}"`);
-        const extraVideos = await fetchYoutubeCulinaryVideos(searchQuery, state.youtubeApiKey, neededCount * 3);
+        const extraVideos = await fetchYoutubeCulinaryVideos(searchQuery, "", neededCount * 3);
         
         if (extraVideos && extraVideos.length > 0) {
           extraVideos.forEach(video => {
@@ -3299,8 +3274,8 @@ function openRecipeModal(recipe) {
     setTimeout(() => {
       attachYoutubePlayerWithFallback(iframe, targetVideoId, modalVideoContainer, backupImg, fallbackVideoId);
     }, 300);
-  } else if (state.youtubeApiKey) {
-    fetchYoutubeCulinaryVideos(recipe.culture + " " + recipe.name + " recipe", state.youtubeApiKey, 1)
+  } else {
+    fetchYoutubeCulinaryVideos(recipe.culture + " " + recipe.name + " recipe", "", 1)
       .then(videos => {
         const videoId = (videos && videos.length > 0) ? validateAndExtractVideoId(videos[0].videoId) : null;
         if (videoId) {
@@ -4789,25 +4764,6 @@ function setupEventListeners() {
   }
 }
 
-function setupYoutubeApiKeyModal() {
-  const configureBtn = document.getElementById("btn-configure-youtube-api");
-  const modal = document.getElementById("youtube-api-modal");
-  const closeBtn = document.getElementById("youtube-api-modal-close-btn");
-  const keyInput = document.getElementById("youtube-api-key-input");
-  const toggleVisibility = document.getElementById("toggle-youtube-key-visibility");
-  const saveBtn = document.getElementById("btn-save-youtube-api");
-  const testBtn = document.getElementById("btn-test-youtube-api");
-  
-  if (!modal) return;
-
-  // Open modal
-  if (configureBtn) {
-    configureBtn.addEventListener("click", () => {
-      if (keyInput) keyInput.value = state.youtubeApiKey || "";
-      modal.classList.add("active");
-    });
-  }
-
   // Close modal
   const closeModal = () => {
     modal.classList.remove("active");
@@ -4838,7 +4794,7 @@ function setupYoutubeApiKeyModal() {
   if (saveBtn) {
     saveBtn.addEventListener("click", () => {
       const keyVal = keyInput.value.trim();
-      state.youtubeApiKey = keyVal;
+      "" = keyVal;
       localStorage.setItem("the_chef_youtube_api_key", keyVal);
       // Reset fetch state to pull fresh videos for the new key
       state.youtubeFeedVideos = [];
@@ -5070,7 +5026,7 @@ function setupProfileGateway() {
     showToast("Account Created", `Welcome to THE CHEF, ${nameVal}!`, "success");
 
     // After profile is created, show the YouTube API key modal if it isn't configured yet
-    if (!state.youtubeApiKey) {
+    if (!"") {
       const apiModal = document.getElementById("youtube-api-modal");
       if (apiModal) {
         setTimeout(() => {
