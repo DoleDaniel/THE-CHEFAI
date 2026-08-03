@@ -1120,11 +1120,71 @@ function debouncedFetchYoutubeFeedVideos() {
   }, 400);
 }
 
+
+// --- DYNAMIC YOUTUBE FEED LOGIC ---
+const ALL_FEED_CATEGORIES = [
+  { id: "cooking", category: "Recipe Show", suffix: "cooking authentic recipe" },
+  { id: "travel", category: "Street Vlog", suffix: "street food travel vlog" },
+  { id: "challenge", category: "Food Challenge", suffix: "food challenge eating competition" },
+  { id: "processing", category: "Food Processing", suffix: "food processing factory machine" },
+  { id: "production", category: "Food Production", suffix: "mass food production process" },
+  { id: "education", category: "Food Education", suffix: "food science culinary education basics" }
+];
+
+async function fetchDynamicCategories(query, mealTimeKeyword, limit = 10) {
+  const selectedCategories = shuffleArray([...ALL_FEED_CATEGORIES]).slice(0, 4); // Pick 4 random categories per load
+  const cultureLabel = state.feedSearchQuery ? (state.feedSearchQuery.charAt(0).toUpperCase() + state.feedSearchQuery.slice(1)) : "Global Cuisine";
+  
+  if (!state.youtubeNextPageTokens) state.youtubeNextPageTokens = {};
+
+  const fetchPromises = selectedCategories.map(async (cat) => {
+    let finalQuery = "";
+    if (cat.id === "cooking") {
+      const FEED_SEARCH_POOLS = ["chef secrets", "kitchen secrets", "home style", "traditional recipe", "village food", "gourmet technique", "satisfying cooking ASMR", "quick dinner", "pro chef"];
+      const randomKeyword = FEED_SEARCH_POOLS[Math.floor(Math.random() * FEED_SEARCH_POOLS.length)];
+      finalQuery = `authentic ${query} ${mealTimeKeyword} ${cat.suffix} ${randomKeyword}`;
+    } else {
+      finalQuery = `${query} ${mealTimeKeyword} ${cat.suffix}`;
+    }
+
+    const token = state.youtubeNextPageTokens[cat.id] || "";
+    try {
+      const res = await fetchYoutubeCulinaryVideos(finalQuery, "", limit, token);
+      state.youtubeNextPageTokens[cat.id] = res.nextPageToken || "";
+      
+      const items = (res || []).map(video => ({
+        id: `yt-${cat.id}-${video.videoId}`,
+        name: video.title,
+        culture: cultureLabel,
+        category: cat.category,
+        story: video.description || `${cat.category} shared by ${video.channelTitle}`,
+        ingredients: [],
+        detailedIngredients: [],
+        nutrition: {
+          calories: "N/A", protein: "N/A", carbs: "N/A", fat: "N/A",
+          impact: `This is a ${cat.category} fetched directly from YouTube.`
+        },
+        image: video.thumbnailUrl,
+        videoUrl: `https://www.youtube.com/embed/${video.videoId}`,
+        isYoutubeVideo: true,
+        channelTitle: video.channelTitle,
+        channelId: video.channelId || null
+      }));
+      return items;
+    } catch (err) {
+      console.warn(`Failed to fetch ${cat.id} videos:`, err);
+      return [];
+    }
+  });
+
+  const resultsArrays = await Promise.all(fetchPromises);
+  const allNewItems = resultsArrays.flat();
+  return shuffleArray(allNewItems);
+}
+
 async function fetchYoutubeFeedVideos() {
-  // Check if we already fetched for this query to prevent infinite render loops
   if (state.youtubeFeedVideosFetched) return;
   
-  // Determine dynamic search term based on state
   let query = "";
   if (state.feedSearchQuery) {
     if (detectGrainsAndFruitCombination(state.feedSearchQuery)) {
@@ -1135,115 +1195,15 @@ async function fetchYoutubeFeedVideos() {
   } else if (state.activeCultureFilter && state.activeCultureFilter !== "All" && state.activeCultureFilter !== "") {
     query = state.activeCultureFilter;
   } else {
-    // Learn & adapt: mix user's preferred country with international cuisines to load mixed cuisines
     query = (state.profile.country || "Nigerian") + " or international";
   }
 
-  // Randomize query keywords to refresh and change feed videos on load/login
-  const FEED_SEARCH_POOLS = ["chef secrets", "street food", "kitchen secrets", "home style", "traditional recipe", "village food", "gourmet technique", "family recipe", "cinematic food styling", "satisfying cooking ASMR", "quick 15 minute dinner recipes", "West African street food cooking", "pro chef culinary techniques"];
-  const randomKeyword = FEED_SEARCH_POOLS[Math.floor(Math.random() * FEED_SEARCH_POOLS.length)];
-
-  const currentStrictBlock = getStrictMealTime(state.simulatedTime);
-  const mealTimeKeyword = currentStrictBlock;
-
-  const cookingQuery = `authentic ${query} ${mealTimeKeyword} cooking ${randomKeyword}`;
-  const travelQuery = `${query} ${mealTimeKeyword} street food travel vlog`;
-  const challengeQuery = `${query} food challenge eating competition worldwide`;
+  const mealTimeKeyword = getStrictMealTime(state.simulatedTime);
   
-  // Do NOT include the meal time keyword in any user-facing label to keep the process unadvertised
-  const cultureLabel = state.feedSearchQuery ? (state.feedSearchQuery.charAt(0).toUpperCase() + state.feedSearchQuery.slice(1)) : "Global Cooking";
-  const travelLabel = state.feedSearchQuery ? `${state.feedSearchQuery} Food Travel` : "Food Travel";
-  const challengeLabel = state.feedSearchQuery ? `${state.feedSearchQuery} Food Challenge` : "Food Challenge";
-
   try {
-    console.log(`[THE CHEF] Fetching YouTube videos. Cooking query: "${cookingQuery}", Travel query: "${travelQuery}", Challenge query: "${challengeQuery}"`);
-    
-    // Fetch cooking videos
-    const cookingVideos = await fetchYoutubeCulinaryVideos(cookingQuery, "", 14);
-    state.youtubeCookingNextPageToken = cookingVideos.nextPageToken || "";
-
-    // Fetch travel food videos
-    const travelVideos = await fetchYoutubeCulinaryVideos(travelQuery, "", 14);
-    state.youtubeTravelNextPageToken = travelVideos.nextPageToken || "";
-
-    // Fetch challenge videos from all continents
-    const challengeVideos = await fetchYoutubeCulinaryVideos(challengeQuery, "", 14);
-    state.youtubeChallengeNextPageToken = challengeVideos.nextPageToken || "";
-    
-    // Map cooking videos
-    const cookingItems = cookingVideos.map(video => ({
-      id: "yt-" + video.videoId,
-      name: video.title,
-      culture: cultureLabel,
-      category: "Recipe Show",
-      story: video.description || "Authentic culinary experience shared by " + video.channelTitle,
-      ingredients: [],
-      detailedIngredients: [],
-      nutrition: {
-        calories: "N/A",
-        protein: "N/A",
-        carbs: "N/A",
-        fat: "N/A",
-        impact: "This is a live cooking demonstration fetched directly from YouTube."
-      },
-      image: video.thumbnailUrl,
-      videoUrl: `https://www.youtube.com/embed/${video.videoId}`,
-      isYoutubeVideo: true,
-      channelTitle: video.channelTitle,
-      channelId: video.channelId || null
-    }));
-
-    // Map travel videos
-    const travelItems = travelVideos.map(video => ({
-      id: "yt-travel-" + video.videoId,
-      name: video.title,
-      culture: travelLabel,
-      category: "Street Vlog",
-      story: video.description || "World street food tour shared by " + video.channelTitle,
-      ingredients: [],
-      detailedIngredients: [],
-      nutrition: {
-        calories: "N/A",
-        protein: "N/A",
-        carbs: "N/A",
-        fat: "N/A",
-        impact: "This is a live travel food experience fetched directly from YouTube."
-      },
-      image: video.thumbnailUrl,
-      videoUrl: `https://www.youtube.com/embed/${video.videoId}`,
-      isYoutubeVideo: true,
-      channelTitle: video.channelTitle,
-      channelId: video.channelId || null
-    }));
-
-    // Map challenge videos
-    const challengeItems = challengeVideos.map(video => ({
-      id: "yt-challenge-" + video.videoId,
-      name: video.title,
-      culture: challengeLabel,
-      category: "Food Challenge",
-      story: video.description || "Continent-wide food eating challenge shared by " + video.channelTitle,
-      ingredients: [],
-      detailedIngredients: [],
-      nutrition: {
-        calories: "N/A",
-        protein: "N/A",
-        carbs: "N/A",
-        fat: "N/A",
-        impact: "This is a food challenge demonstration fetched directly from YouTube."
-      },
-      image: video.thumbnailUrl,
-      videoUrl: `https://www.youtube.com/embed/${video.videoId}`,
-      isYoutubeVideo: true,
-      channelTitle: video.channelTitle,
-      channelId: video.channelId || null
-    }));
-
-    // Store in state (shuffled so the top 2 videos are refreshed and randomized)
-    state.youtubeFeedVideos = shuffleArray([...cookingItems, ...travelItems, ...challengeItems]);
+    const newItems = await fetchDynamicCategories(query, mealTimeKeyword, 12);
+    state.youtubeFeedVideos = newItems;
     state.youtubeFeedVideosFetched = true;
-    
-    // Re-render feed to display the new videos
     renderFeed();
   } catch (error) {
     console.error("Failed to load YouTube feed videos:", error);
@@ -1260,17 +1220,12 @@ async function loadMoreFeedVideos() {
     return;
   }
 
-  // Append a beautiful loading indicator at the bottom of the grid
   const spinner = document.createElement("div");
   spinner.id = "feed-infinite-spinner";
   spinner.style.cssText = "grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; color: var(--text-muted); font-size: 0.85rem; width: 100%; text-align: center; gap: 8px;";
-  spinner.innerHTML = `
-    <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.8rem; color: var(--accent-color); margin-bottom: 8px;"></i>
-    <span>Loading more mouth-watering delicacies...</span>
-  `;
+  spinner.innerHTML = `<i class="fa-solid fa-spinner fa-spin" style="font-size: 1.8rem; color: var(--accent-color); margin-bottom: 8px;"></i><span>Loading more mouth-watering delicacies...</span>`;
   grid.appendChild(spinner);
 
-  // Determine dynamic search term based on state
   let query = "";
   if (state.feedSearchQuery) {
     if (detectGrainsAndFruitCombination(state.feedSearchQuery)) {
@@ -1281,88 +1236,20 @@ async function loadMoreFeedVideos() {
   } else if (state.activeCultureFilter && state.activeCultureFilter !== "All" && state.activeCultureFilter !== "") {
     query = state.activeCultureFilter;
   } else {
-    // Learn & adapt: mix user's preferred country with international cuisines to load mixed cuisines
     query = (state.profile.country || "Nigerian") + " or international";
   }
 
-  // Randomize query keywords slightly to get fresh endless content
-  const FEED_SEARCH_POOLS = ["chef secrets", "street food", "kitchen secrets", "home style", "traditional recipe", "village food", "gourmet technique", "family recipe", "cinematic food styling", "satisfying cooking ASMR", "quick 15 minute dinner recipes", "West African street food cooking", "pro chef culinary techniques"];
-  const randomKeyword = FEED_SEARCH_POOLS[Math.floor(Math.random() * FEED_SEARCH_POOLS.length)];
-
-  const currentStrictBlock = getStrictMealTime(state.simulatedTime);
-  const mealTimeKeyword = currentStrictBlock;
-
-  const cookingQuery = `authentic ${query} ${mealTimeKeyword} cooking ${randomKeyword}`;
-  const travelQuery = `${query} ${mealTimeKeyword} street food travel vlog`;
-  
-  // Do NOT include the meal time keyword in any user-facing label to keep the process unadvertised
-  const cultureLabel = state.feedSearchQuery ? (state.feedSearchQuery.charAt(0).toUpperCase() + state.feedSearchQuery.slice(1)) : "Global Cooking";
-  const travelLabel = state.feedSearchQuery ? `${state.feedSearchQuery} Food Travel` : "Food Travel";
+  const mealTimeKeyword = getStrictMealTime(state.simulatedTime);
 
   try {
-    const cookingRes = await fetchYoutubeCulinaryVideos(cookingQuery, "", 10, state.youtubeCookingNextPageToken);
-    state.youtubeCookingNextPageToken = cookingRes.nextPageToken || "";
-
-    const travelRes = await fetchYoutubeCulinaryVideos(travelQuery, "", 10, state.youtubeTravelNextPageToken);
-    state.youtubeTravelNextPageToken = travelRes.nextPageToken || "";
-
-    // Remove spinner
+    const newItems = await fetchDynamicCategories(query, mealTimeKeyword, 10);
+    
     const spinnerEl = document.getElementById("feed-infinite-spinner");
     if (spinnerEl) spinnerEl.remove();
 
-    const cookingItems = (cookingRes || []).map(video => ({
-      id: "yt-" + video.videoId,
-      name: video.title,
-      culture: cultureLabel,
-      category: "Recipe Show",
-      story: video.description || "Authentic culinary experience shared by " + video.channelTitle,
-      ingredients: [],
-      detailedIngredients: [],
-      nutrition: {
-        calories: "N/A",
-        protein: "N/A",
-        carbs: "N/A",
-        fat: "N/A",
-        impact: "This is a live cooking demonstration fetched directly from YouTube."
-      },
-      image: video.thumbnailUrl,
-      videoUrl: `https://www.youtube.com/embed/${video.videoId}`,
-      isYoutubeVideo: true,
-      channelTitle: video.channelTitle,
-      channelId: video.channelId || null
-    }));
-
-    const travelItems = (travelRes || []).map(video => ({
-      id: "yt-travel-" + video.videoId,
-      name: video.title,
-      culture: travelLabel,
-      category: "Street Vlog",
-      story: video.description || "World street food tour shared by " + video.channelTitle,
-      ingredients: [],
-      detailedIngredients: [],
-      nutrition: {
-        calories: "N/A",
-        protein: "N/A",
-        carbs: "N/A",
-        fat: "N/A",
-        impact: "This is a live travel food experience fetched directly from YouTube."
-      },
-      image: video.thumbnailUrl,
-      videoUrl: `https://www.youtube.com/embed/${video.videoId}`,
-      isYoutubeVideo: true,
-      channelTitle: video.channelTitle,
-      channelId: video.channelId || null
-    }));
-
-    const newItems = [...cookingItems, ...travelItems];
     if (newItems.length > 0) {
-      // Shuffle the new items to randomize first/second items in the new batch
-      const shuffledNewItems = [...newItems].sort(() => Math.random() - 0.5);
-
-      state.youtubeFeedVideos = [...state.youtubeFeedVideos, ...shuffledNewItems];
-      
-      // Append cards to grid smoothly
-      shuffledNewItems.forEach(recipe => {
+      state.youtubeFeedVideos = [...state.youtubeFeedVideos, ...newItems];
+      newItems.forEach(recipe => {
         const card = createRecipeCardElement(recipe);
         grid.appendChild(card);
       });
@@ -1375,6 +1262,8 @@ async function loadMoreFeedVideos() {
     state.isLoadingMoreFeed = false;
   }
 }
+// --- END DYNAMIC YOUTUBE FEED LOGIC ---
+
 
 // Render Feed
 function renderFeed() {
