@@ -864,7 +864,7 @@ function loadLocalStorage() {
   const localKitchen = localStorage.getItem("the_chef_kitchen");
   const localSecretMeals = localStorage.getItem("the_chef_secrets");
   const localProfile = localStorage.getItem("the_chef_profile");
-  "" = localStorage.getItem("the_chef_youtube_api_key") || "";
+
 
   if (localKitchen) {
     state.kitchenIngredients = JSON.parse(localKitchen);
@@ -1637,26 +1637,6 @@ function createRecipeCardElement(recipe) {
             if (newIframe) attachYoutubePlayerWithFallback(newIframe, videoId, placeholder, imageUrl, fallbackVideoId);
           }, 300);
         });
-    } else {
-      if (recipe.videoUrl) {
-        const rawId = recipe.videoUrl;
-        const videoId = validateAndExtractVideoId(rawId) || "lMviiY8CoaQ";
-        const embedUrl = getCleanEmbedUrl(`https://www.youtube.com/embed/${videoId}`, true);
-        placeholder.innerHTML = `
-          <iframe id="${iframeId}" src="${embedUrl}" 
-                  style="width: 100%; height: 100%; border: none;" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; compute-pressure" 
-                  allowfullscreen>
-          </iframe>
-        `;
-        setTimeout(() => {
-          const newIframe = document.getElementById(iframeId);
-          if (newIframe) attachYoutubePlayerWithFallback(newIframe, videoId, placeholder, imageUrl, fallbackVideoId);
-        }, 300);
-      } else {
-        mediaCover.style.display = "flex";
-        openRecipeModal(recipe);
-      }
     }
   });
 
@@ -3308,12 +3288,6 @@ function openRecipeModal(recipe) {
           attachYoutubePlayerWithFallback(iframe, fallbackId, modalVideoContainer, backupImg, fallbackVideoId);
         }, 300);
       });
-  } else {
-    const fallbackId = validateAndExtractVideoId(recipe.videoUrl) || "lMviiY8CoaQ";
-    iframe.src = getCleanEmbedUrl(`https://www.youtube.com/embed/${fallbackId}`);
-    setTimeout(() => {
-      attachYoutubePlayerWithFallback(iframe, fallbackId, modalVideoContainer, backupImg, fallbackVideoId);
-    }, 300);
   }
 
   // Calculate base nutrition (with dynamic estimation if N/A)
