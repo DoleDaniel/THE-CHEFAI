@@ -42,7 +42,7 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-if (process.env.NODE_ENV !== 'production') {
+if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`==================================================`);
     console.log(`  THE CHEF AI Backend running on port ${PORT}`);

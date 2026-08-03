@@ -841,7 +841,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!"") {
         const apiModal = document.getElementById("youtube-api-modal");
         if (apiModal) {
-          apiModal.classList.add("active");
+          // modal removed;
         }
       }
     }, 600);
@@ -4929,7 +4929,7 @@ function setupProfileGateway() {
       const apiModal = document.getElementById("youtube-api-modal");
       if (apiModal) {
         setTimeout(() => {
-          apiModal.classList.add("active");
+          // modal removed;
         }, 500);
       }
     }
@@ -5174,3 +5174,4 @@ function shuffleArray(array) {
   }
   return array;
 }
+

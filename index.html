@@ -829,41 +829,6 @@
     </div>
   </div>
 
-  <!-- MODAL: YOUTUBE API KEY CONFIGURATION -->
-  <div class="modal-overlay" id="youtube-api-modal">
-    <div class="glass-panel modal-card" style="max-width: 480px;">
-      <button class="modal-close-btn" id="youtube-api-modal-close-btn"><i class="fa-solid fa-xmark"></i></button>
-      
-      <div class="modal-header-section">
-        <h2 class="modal-recipe-title"><i class="fa-brands fa-youtube text-accent"></i> YouTube API Config</h2>
-        <p class="modal-recipe-story" style="font-size: 0.8rem; margin-top: 4px;">Enter your Google Developer YouTube Data API Key to query real videos directly from the Feed page.</p>
-      </div>
-
-      <div class="modal-body-scroll" style="padding-top: 10px;">
-        <div class="form-group">
-          <label for="youtube-api-key-input">YouTube Data API Key (v3)</label>
-          <div style="position: relative; display: flex; align-items: center;">
-            <input type="password" id="youtube-api-key-input" placeholder="AIzaSy..." style="width: 100%; padding: 10px 40px 10px 14px; background: rgba(0,0,0,0.3); color: #fff; border: 1px solid var(--border-color); border-radius: 8px; font-family: monospace; font-size: 0.9rem;" autocomplete="off">
-            <i class="fa-regular fa-eye-slash" id="toggle-youtube-key-visibility" style="position: absolute; right: 14px; cursor: pointer; color: var(--text-muted); font-size: 1.1rem; line-height: 1;"></i>
-          </div>
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 15px; font-size: 0.75rem; color: var(--text-muted); background: rgba(252,74,26,0.05); padding: 12px; border-radius: 8px; border: 1px solid rgba(252,74,26,0.15); line-height: 1.4;">
-          <div><i class="fa-solid fa-circle-info text-accent"></i> <strong>Safe Storage:</strong> The API Key is stored securely in your browser's <code>localStorage</code> database. It is never sent to any external server except Google's official YouTube API.</div>
-        </div>
-
-        <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
-          <div style="display: flex; gap: 12px;">
-            <button type="button" class="btn btn-secondary btn-block" id="btn-test-youtube-api" style="flex: 1;"><i class="fa-solid fa-vial"></i> Test Key</button>
-            <button type="button" class="btn btn-primary btn-block" id="btn-save-youtube-api" style="flex: 1;"><i class="fa-solid fa-circle-check"></i> Save & Enter</button>
-          </div>
-          <button type="button" class="btn btn-block" id="btn-skip-youtube-api" style="background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid var(--border-color); padding: 10px 0; border-radius: 8px; font-weight: 600; cursor: pointer;">
-            Skip & Enter Application
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- MODAL: SECURE PROFILE CREATION & GATEWAY -->
   <div class="modal-overlay" id="profile-gateway-modal">
