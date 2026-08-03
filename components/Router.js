@@ -2,7 +2,7 @@ export class Router {
   constructor(routes) {
     this.routes = routes;
     this.instances = {};
-    this.root = document.getElementById('app-root') || document.body;
+    this.root = document.getElementById('app-root') || document.querySelector('.app-main') || document.body;
     this.currentView = null;
   }
 
