@@ -292,8 +292,8 @@ class YouTubePlayerComponent {
     if (typeof YT === 'undefined' || !YT.Player) {
       this.initRetryCount = (this.initRetryCount || 0) + 1;
       if (this.initRetryCount > 60) {
-        console.warn("YouTube Player API failed to load after 6 seconds. Switching to custom fallback card.");
-        this.setState({ hasError: true });
+        console.warn("YouTube Player API failed to load. Gracefully degrading to native iframe.");
+        if (this.loadTimeout) clearTimeout(this.loadTimeout);
         return;
       }
       setTimeout(() => this.init(), 100);
@@ -316,8 +316,8 @@ class YouTubePlayerComponent {
     }
     this.loadTimeout = setTimeout(() => {
       if (!this.state.hasError) {
-        console.warn("YouTube iframe load timed out (DNS resolution failure or restricted network). Fallback triggered.");
-        this.setState({ hasError: true });
+        console.warn("YouTube iframe onReady timed out. Gracefully degrading to native iframe.");
+        // Removed aggressive fallback, leaving the native iframe visible
       }
     }, 6000);
 
